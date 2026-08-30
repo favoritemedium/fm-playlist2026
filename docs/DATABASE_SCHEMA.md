@@ -1,8 +1,8 @@
 # Database Schema
 
-FM Playlist stores songs and engagement data in Postgres. Song rows come from
-two sources: Airtable legacy sync and new app submissions. Postgres is the
-source of truth for songs, likes, comments, and in-app engagement events.
+FM Playlist stores songs and engagement data in Postgres, which is the sole
+runtime source of truth. Existing historical imports and new app submissions
+live together in the `songs` table.
 
 The schema is auto-provisioned on first `docker compose up` by
 [../db/init/001_schema.sql](../db/init/001_schema.sql) and guarded at runtime by
@@ -31,15 +31,15 @@ Indexes:
 | Column | Type | Null | Description |
 |---|---|---|---|
 | `id` | `SERIAL PK` | No | Auto-increment primary key |
-| `source` | `TEXT` | No | `airtable` for synced rows, `app` for new submissions |
-| `airtable_record_id` | `TEXT UNIQUE` | Yes | Original Airtable record ID for sync idempotency |
+| `source` | `TEXT` | No | Historical provenance: `airtable` for old imports, `app` for app submissions |
+| `airtable_record_id` | `TEXT UNIQUE` | Yes | Original record ID retained on historical imports |
 | `submitter_user_id` | `TEXT FK` | Yes | Clerk user ID for app-submitted songs when known |
-| `submitter_name` | `TEXT` | No | Airtable submitter or Clerk display name |
-| `legacy_submitter_name` | `TEXT` | Yes | Original Airtable free-text name retained after contributor reconciliation |
+| `submitter_name` | `TEXT` | No | Approved historical identity or Clerk display name |
+| `legacy_submitter_name` | `TEXT` | Yes | Original free-text name retained from historical data cleanup |
 | `submitter_email` | `TEXT` | Yes | Clerk email for app submissions or an approved reconciled legacy identity |
-| `artist_name` | `TEXT` | Yes | Airtable artist field |
-| `song_title` | `TEXT` | Yes | Airtable title field |
-| `description` | `TEXT` | Yes | Airtable description or app-provided note |
+| `artist_name` | `TEXT` | Yes | Song artist metadata |
+| `song_title` | `TEXT` | Yes | Song title metadata |
+| `description` | `TEXT` | Yes | Historical description or app-provided note |
 | `youtube_url` | `TEXT` | No | Full submitted YouTube URL |
 | `youtube_video_id` | `TEXT` | No | Extracted 11-character YouTube video ID |
 | `submitted_date` | `DATE` | No | Submission date as `YYYY-MM-DD` |
@@ -63,20 +63,6 @@ Constraints:
 - `year` must be between 2000 and 2100.
 - `submitter_user_id` references `app_users(clerk_user_id)` and is set to
    `NULL` if the user row is deleted.
-
-## `contributor_identity_mappings` Table
-
-This table records the administrator-approved mapping from each normalized
-legacy Airtable name to a canonical email, display name, and optional Clerk
-user ID. Multiple legacy names may map to the same account. The original name
-also remains on each affected song in `songs.legacy_submitter_name`, allowing a
-mapping to be corrected without losing its source value.
-
-## `contributor_reconciliation_skips` Table
-
-This temporary workflow table records legacy names intentionally skipped in
-the `/admin` queue. Skipping does not modify `songs` and does not create an
-identity mapping. Returning a name to the queue deletes its skip record.
 
 ## `song_likes` Table
 
@@ -160,16 +146,12 @@ Constraints:
 
 ## Data Flow
 
-### Airtable To Postgres
+### Playlist Reads
 
-1. Authenticated page/API reads call `getAllSongs()`.
-2. The server fetches Airtable records and Postgres records in parallel.
-3. Postgres failures throw; Airtable failures degrade to Postgres-only data.
-4. Missing Airtable rows are inserted into Postgres with
-   `ON CONFLICT (airtable_record_id) DO NOTHING`.
-5. Results are returned from Postgres with stable `db_` IDs only, so likes and
+1. Page and API reads call `getAllSongs()`.
+2. Songs are read directly from Postgres with stable `db_` IDs so likes and
    comments can reference `songs.id` safely.
-6. Results include like counts, comment counts, and whether the current user
+3. Results include like counts, comment counts, and whether the current user
    liked each song.
 
 ### New App Submissions
@@ -209,16 +191,3 @@ Descriptions are limited to 500 characters. Dates are normalized to
 5. If no one submitted, Friday sends a gentle nudge instead.
 6. The app reserves a `reminder_runs` row before sending and marks it `sent` or
    `failed` after the Google Chat webhook call.
-
-## Airtable Fields
-
-The app reads these fields from the Airtable `videos` table:
-
-| Field | Type | Example |
-|---|---|---|
-| `submitterName` | String | `Chanaka Karunarathne` |
-| `artistName` | String | `Sunidhi, Labh Janjua` |
-| `songTitle` | String | `Dance Pe Chance` |
-| `songDescription` | String | `This is a song from one of my favorite movies.` |
-| `youtubeLink` | URL | `https://www.youtube.com/watch?v=rap8SoUIPaw` |
-| `submittedDate` | Date | `2025-02-18` |

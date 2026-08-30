@@ -14,7 +14,6 @@ Postgres host.
 - **Realtime engagement** — live like/comment count updates and in-app submitter notifications
 - **Google Chat reminders** — scheduled prompts and weekly submitter thanks
 - **Search** — filter by submitter, title, artist, or description
-- **Airtable -> Postgres sync** — optional legacy import, runs on page load
 - **Responsive** — works on mobile, tablet, and desktop
 - **Quality gates** — ESLint, TypeScript, Vitest, and GitHub Actions CI
 
@@ -54,7 +53,6 @@ See [.env.example](.env.example) for the full list.
 | `CLERK_SECRET_KEY` | ✔ | Clerk secret key |
 | `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` | ✔ (compose) | Postgres credentials. `DATABASE_URL` is derived in `docker-compose.yml` |
 | `DATABASE_URL` | ✔ (non-compose) | Full Postgres connection string |
-| `AIRTABLE_API_TOKEN` / `AIRTABLE_BASE_ID` | — | Enable Airtable sync |
 | `ALLOWED_EMAIL_DOMAIN` | — | Server-side fallback allowlist. Defaults to `favoritemedium.com` |
 | `SERVICE_URL_APP` | reminders | Public app URL included in Google Chat messages |
 | `GOOGLE_CHAT_WEBHOOK_URL` | reminders | Google Chat Space webhook URL |
@@ -95,8 +93,6 @@ npm run test    # Run unit tests
   when reminder env vars are configured.
 - Postgres is required and is the source of truth. If Postgres is unavailable,
   the app surfaces an error instead of pretending the playlist is empty.
-- Airtable is optional. If Airtable credentials are absent or Airtable fails,
-  the app serves Postgres data only and logs the sync issue.
 - New submissions accept YouTube `watch`, `youtu.be`, `embed`, and `shorts`
   URLs only. Descriptions are limited to 500 characters.
 
@@ -121,13 +117,12 @@ src/
     playlist/useEngagementEvents.ts # Client SSE subscription hook
   lib/
     auth.ts                 # Clerk user mapping and domain checks
-    airtable.ts             # Airtable API (server-only)
     db.ts                   # pg.Pool + ensureSchema()
     engagement-db.ts        # Likes/comments queries and rules
     engagement-events.ts    # Postgres LISTEN/NOTIFY fan-out for SSE
     songs-db.ts             # Postgres queries for songs
     reminders*.ts           # Reminder scheduling, messages, Google Chat, DB helpers
-    songs.ts                # Unified data layer (Airtable + DB)
+    songs.ts                # Playlist data and submission service
     youtube.ts              # YouTube URL utilities
     constants.ts            # Shared constants
   types/song.ts             # TypeScript interfaces
@@ -141,7 +136,6 @@ db/
 - [Architecture](docs/ARCHITECTURE.md)
 - [Clerk Setup](docs/CLERK_SETUP.md)
 - [Database Schema](docs/DATABASE_SCHEMA.md)
-- [Airtable Integration](docs/AIRTABLE_INTEGRATION.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [Security](docs/SECURITY.md)
 - [Testing](docs/TESTING.md)

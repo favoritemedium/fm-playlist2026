@@ -22,7 +22,6 @@ Required secrets and private values:
 
 - `CLERK_SECRET_KEY`
 - `POSTGRES_PASSWORD` or `DATABASE_URL`
-- `AIRTABLE_API_TOKEN`, when Airtable sync is enabled
 - `GOOGLE_CHAT_WEBHOOK_URL`, when Google Chat reminders are enabled
 - `REMINDER_CRON_SECRET`, when scheduled reminder endpoints are enabled
 
@@ -35,7 +34,7 @@ secrets; do not hardcode Clerk keys in workflow YAML.
 
 Rotate provider tokens when they are committed, copied into a shared channel,
 attached to a ticket, or discovered in a build artifact. Rotation happens in
-Clerk, Airtable, and the deployment host, not in code.
+Clerk and the deployment host, not in code.
 
 Google Chat webhook URLs are bearer credentials. Do not paste production
 webhook URLs into source files, tickets, logs, or shared chat messages. If a

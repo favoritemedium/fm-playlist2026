@@ -2,7 +2,7 @@
 
 FM Playlist is a small Next.js App Router application with a server-rendered
 home page, a client-side playlist experience, Clerk authentication, Postgres as
-the source of truth, and optional Airtable legacy sync.
+the source of truth, and historical songs already stored in Postgres.
 
 ## Request Flow
 
@@ -18,9 +18,7 @@ the source of truth, and optional Airtable legacy sync.
 ## Data Flow
 
 ```text
-Airtable API (optional) ----\
-                            -> getAllSongs() -> PlaylistView
-Postgres (required) --------/
+Postgres -> getAllSongs() -> PlaylistView
 
 AddTrackDialog -> POST /api/songs -> createSong() -> Postgres
 
@@ -34,8 +32,7 @@ EngagementDialog / SongCard actions
   -> PlaylistView state + submitter notifications
 ```
 
-Postgres failures are fatal because Postgres is the source of truth. Airtable
-failures are non-fatal and degrade to Postgres-only results.
+Postgres failures are fatal because Postgres is the sole source of truth.
 
 ## Server Components And Client Components
 
@@ -83,13 +80,12 @@ API errors use `{ error, code, details? }` JSON bodies.
 - `src/lib/validation.ts` validates song submissions with Zod.
 - `src/lib/youtube.ts` parses supported YouTube URL shapes with `URL` parsing.
 - `src/lib/dates.ts` normalizes date-only values and avoids timezone drift.
-- `src/lib/songs.ts` merges Postgres and optional Airtable data.
+- `src/lib/songs.ts` reads Postgres data and handles new submissions.
 - `src/lib/songs-db.ts` contains Postgres queries.
 - `src/lib/engagement-db.ts` owns like/comment persistence, reply rules,
   ownership checks, and comment rate limiting.
 - `src/lib/engagement-events.ts` maintains one Postgres `LISTEN` client per
   process and fans engagement events out to SSE subscribers.
-- `src/lib/airtable.ts` contains Airtable pagination, retry, and mapping logic.
 
 ## Styling And UI
 

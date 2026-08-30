@@ -112,21 +112,3 @@ export interface CreateSongInput {
   description?: string;
   allowDuplicate?: boolean;
 }
-
-export interface AirtableRecord {
-  id: string;
-  createdTime: string;
-  fields: {
-    submitterName?: string;
-    artistName?: string;
-    songTitle?: string;
-    songDescription?: string;
-    youtubeLink?: string;
-    submittedDate?: string;
-  };
-}
-
-export interface AirtableResponse {
-  records: AirtableRecord[];
-  offset?: string;
-}

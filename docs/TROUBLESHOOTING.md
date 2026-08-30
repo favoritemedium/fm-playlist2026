@@ -40,12 +40,6 @@ production deployment.
 Check Postgres connectivity first. Postgres failures now surface as app/API
 errors because Postgres is required.
 
-**Airtable rows are missing**
-
-Check logs for `[SYNC]` messages. Rows are skipped if they lack a YouTube URL,
-have an unsupported URL, or have an invalid date. Airtable failures do not stop
-Postgres data from loading.
-
 **Invalid YouTube URL rejected**
 
 Accepted formats are:

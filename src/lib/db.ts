@@ -85,25 +85,6 @@ BEGIN
   END IF;
 END $$;
 
-CREATE TABLE IF NOT EXISTS contributor_identity_mappings (
-  legacy_name_key      TEXT PRIMARY KEY,
-  legacy_name          TEXT        NOT NULL,
-  canonical_name       TEXT        NOT NULL,
-  canonical_email      TEXT        NOT NULL,
-  submitter_user_id    TEXT        REFERENCES app_users(clerk_user_id) ON DELETE SET NULL,
-  mapped_by_email      TEXT        NOT NULL,
-  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS contributor_reconciliation_skips (
-  legacy_name_key      TEXT PRIMARY KEY,
-  legacy_name          TEXT        NOT NULL,
-  skipped_by_email     TEXT        NOT NULL,
-  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
 CREATE TABLE IF NOT EXISTS song_likes (
   song_id              INTEGER     NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
   user_id              TEXT        NOT NULL REFERENCES app_users(clerk_user_id) ON DELETE CASCADE,
@@ -179,8 +160,6 @@ CREATE INDEX IF NOT EXISTS songs_youtube_video_id_idx
   ON songs (youtube_video_id);
 CREATE INDEX IF NOT EXISTS songs_submitter_user_id_idx
   ON songs (submitter_user_id);
-CREATE INDEX IF NOT EXISTS contributor_identity_mappings_email_idx
-  ON contributor_identity_mappings (lower(canonical_email));
 
 CREATE INDEX IF NOT EXISTS song_likes_user_id_idx
   ON song_likes (user_id);
@@ -202,6 +181,17 @@ CREATE INDEX IF NOT EXISTS reminder_runs_job_created_idx
   ON reminder_runs (job_name, created_at DESC);
 CREATE INDEX IF NOT EXISTS reminder_runs_period_idx
   ON reminder_runs (job_name, period_start, period_end);
+
+-- Remove the one malformed historical row identified during the completed
+-- contributor cleanup. The exact source ID and content guards make this
+-- idempotent and prevent an unrelated song from being deleted.
+DELETE FROM songs
+WHERE source = 'airtable'
+  AND airtable_record_id = 'recThRVcpvXVvVUng'
+  AND youtube_video_id = 'rNta5Fo6K7U'
+  AND submitted_date = DATE '2023-02-15'
+  AND btrim(submitter_name) = ''
+  AND btrim(COALESCE(song_title, '')) = '';
 
 CREATE OR REPLACE FUNCTION app_users_set_updated_at()
 RETURNS TRIGGER AS $$

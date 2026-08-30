@@ -47,7 +47,7 @@ CLERK_SECRET_KEY=<secret key>
 ALLOWED_EMAIL_DOMAIN=favoritemedium.com
 ```
 
-Keep the existing Postgres and optional Airtable variables from
+Keep the existing Postgres variables from
 [../.env.example](../.env.example).
 
 ## 6. Production Domains

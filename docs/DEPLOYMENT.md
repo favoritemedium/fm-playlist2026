@@ -31,8 +31,6 @@ See [../.env.example](../.env.example) for the full list.
 - **Postgres:** compose uses `POSTGRES_DB`, `POSTGRES_USER`, and
   `POSTGRES_PASSWORD` to build `DATABASE_URL`. Managed deployments can set
   `DATABASE_URL` directly.
-- **Airtable:** `AIRTABLE_API_TOKEN` and `AIRTABLE_BASE_ID` are optional. Omit
-  them to run from Postgres only.
 - **Domain allowlist:** `ALLOWED_EMAIL_DOMAIN` defaults to `favoritemedium.com`.
   Keep it aligned with Clerk's own sign-in restrictions.
 - **Google Chat reminders:** `SERVICE_URL_APP`, `GOOGLE_CHAT_WEBHOOK_URL`, and
@@ -102,7 +100,7 @@ key, so retries for the same job/window do not send duplicate Space messages.
 
 1. Create a managed Postgres resource and copy its connection string.
 2. Create a Docker build resource using the root `Dockerfile`.
-3. Set `DATABASE_URL`, Clerk keys, and optional Airtable values.
+3. Set `DATABASE_URL` and Clerk keys.
 4. Set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` as a build variable too.
 5. Set `SERVICE_URL_APP` to the public app URL. In Coolify this value is often
   already available as the app service URL.
@@ -131,14 +129,12 @@ orchestration health checks.
 
 - Keep `.env` and `.env.local` out of Git. They are ignored by Git and Docker
   build context rules.
-- Rotate Clerk or Airtable credentials if they are copied into a shared place,
+- Rotate Clerk credentials if they are copied into a shared place,
   committed by accident, or exposed by build artifacts.
 - Rotate `GOOGLE_CHAT_WEBHOOK_URL` if it is copied into a shared place,
   committed by accident, or posted in chat/tickets.
 - Back up Postgres before destructive maintenance. For compose deployments,
   data lives in the `postgres_data` volume.
-- Watch logs for `[SYNC]` messages. They include Airtable row counts, skipped
-  row counts, and inserted row counts.
 - Watch logs for engagement listener errors if SSE updates stop. Clients can
   still use the REST APIs, but realtime updates require the Postgres listener.
 - Run `npm audit --audit-level=high` and your container scanner before
@@ -154,10 +150,6 @@ orchestration health checks.
   same Clerk instance.
 - **Unexpected account can sign in** - check Clerk restrictions and confirm
   `ALLOWED_EMAIL_DOMAIN` matches the intended domain.
-- **Airtable 401/403** - token expired or scoped incorrectly. Fix the token or
-  unset Airtable variables to skip sync.
-- **Airtable 429** - the app retries with exponential backoff. If it still
-  fails, Postgres data is served and the issue is logged.
 - **Empty playlist after DB failure** - this should no longer happen. DB
   outages should surface as app/API errors.
 - **Build cannot find Clerk key** - set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` at
