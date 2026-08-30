@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS songs (
   airtable_record_id   TEXT        UNIQUE,
   submitter_user_id    TEXT        REFERENCES app_users(clerk_user_id) ON DELETE SET NULL,
   submitter_name       TEXT        NOT NULL,
+  legacy_submitter_name TEXT,
   submitter_email      TEXT,
   artist_name          TEXT,
   song_title           TEXT,
@@ -61,6 +62,7 @@ CREATE TABLE IF NOT EXISTS songs (
 DO $$
 BEGIN
   ALTER TABLE songs ADD COLUMN IF NOT EXISTS submitter_user_id TEXT;
+  ALTER TABLE songs ADD COLUMN IF NOT EXISTS legacy_submitter_name TEXT;
 
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'songs_submitter_user_id_fkey') THEN
     ALTER TABLE songs ADD CONSTRAINT songs_submitter_user_id_fkey FOREIGN KEY (submitter_user_id) REFERENCES app_users(clerk_user_id) ON DELETE SET NULL NOT VALID;
@@ -82,6 +84,25 @@ BEGIN
     ALTER TABLE songs ADD CONSTRAINT songs_year_check CHECK (year BETWEEN 2000 AND 2100) NOT VALID;
   END IF;
 END $$;
+
+CREATE TABLE IF NOT EXISTS contributor_identity_mappings (
+  legacy_name_key      TEXT PRIMARY KEY,
+  legacy_name          TEXT        NOT NULL,
+  canonical_name       TEXT        NOT NULL,
+  canonical_email      TEXT        NOT NULL,
+  submitter_user_id    TEXT        REFERENCES app_users(clerk_user_id) ON DELETE SET NULL,
+  mapped_by_email      TEXT        NOT NULL,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS contributor_reconciliation_skips (
+  legacy_name_key      TEXT PRIMARY KEY,
+  legacy_name          TEXT        NOT NULL,
+  skipped_by_email     TEXT        NOT NULL,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 CREATE TABLE IF NOT EXISTS song_likes (
   song_id              INTEGER     NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
@@ -158,6 +179,8 @@ CREATE INDEX IF NOT EXISTS songs_youtube_video_id_idx
   ON songs (youtube_video_id);
 CREATE INDEX IF NOT EXISTS songs_submitter_user_id_idx
   ON songs (submitter_user_id);
+CREATE INDEX IF NOT EXISTS contributor_identity_mappings_email_idx
+  ON contributor_identity_mappings (lower(canonical_email));
 
 CREATE INDEX IF NOT EXISTS song_likes_user_id_idx
   ON song_likes (user_id);

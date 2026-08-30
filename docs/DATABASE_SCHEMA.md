@@ -35,7 +35,8 @@ Indexes:
 | `airtable_record_id` | `TEXT UNIQUE` | Yes | Original Airtable record ID for sync idempotency |
 | `submitter_user_id` | `TEXT FK` | Yes | Clerk user ID for app-submitted songs when known |
 | `submitter_name` | `TEXT` | No | Airtable submitter or Clerk display name |
-| `submitter_email` | `TEXT` | Yes | Populated only for app submissions |
+| `legacy_submitter_name` | `TEXT` | Yes | Original Airtable free-text name retained after contributor reconciliation |
+| `submitter_email` | `TEXT` | Yes | Clerk email for app submissions or an approved reconciled legacy identity |
 | `artist_name` | `TEXT` | Yes | Airtable artist field |
 | `song_title` | `TEXT` | Yes | Airtable title field |
 | `description` | `TEXT` | Yes | Airtable description or app-provided note |
@@ -62,6 +63,20 @@ Constraints:
 - `year` must be between 2000 and 2100.
 - `submitter_user_id` references `app_users(clerk_user_id)` and is set to
    `NULL` if the user row is deleted.
+
+## `contributor_identity_mappings` Table
+
+This table records the administrator-approved mapping from each normalized
+legacy Airtable name to a canonical email, display name, and optional Clerk
+user ID. Multiple legacy names may map to the same account. The original name
+also remains on each affected song in `songs.legacy_submitter_name`, allowing a
+mapping to be corrected without losing its source value.
+
+## `contributor_reconciliation_skips` Table
+
+This temporary workflow table records legacy names intentionally skipped in
+the `/admin` queue. Skipping does not modify `songs` and does not create an
+identity mapping. Returning a name to the queue deletes its skip record.
 
 ## `song_likes` Table
 

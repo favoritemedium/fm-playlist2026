@@ -23,11 +23,26 @@ export async function syncAppUserIdentity(user: AppUser): Promise<void> {
 
   await getPool().query(
     `UPDATE songs
-     SET submitter_user_id = $1
-     WHERE submitter_user_id IS NULL
-       AND source = 'app'
-       AND submitter_email IS NOT NULL
-       AND lower(submitter_email) = lower($2)`,
-    [user.id, user.email]
+     SET submitter_user_id = $1,
+         submitter_name = $2,
+         submitter_email = $3
+     WHERE submitter_user_id = $1
+        OR (
+          submitter_user_id IS NULL
+          AND submitter_email IS NOT NULL
+          AND lower(submitter_email) = lower($3)
+        )`,
+    [user.id, user.name, user.email]
+  );
+
+  await getPool().query(
+    `UPDATE contributor_identity_mappings
+     SET submitter_user_id = $1,
+         canonical_name = $2,
+         canonical_email = $3,
+         updated_at = now()
+     WHERE submitter_user_id = $1
+        OR lower(canonical_email) = lower($3)`,
+    [user.id, user.name, user.email]
   );
 }
