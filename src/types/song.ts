@@ -16,6 +16,7 @@ export interface Song {
   likeCount: number;
   commentCount: number;
   userLiked: boolean;
+  bookmarked?: boolean;
 }
 
 export interface EngagementUser {
@@ -77,12 +78,39 @@ export type SongEngagementEvent =
       commentId: number;
       commenterName: string;
       songSubmitterUserId: string;
+      recipientUserId?: string;
+      notificationType?: NotificationType;
       createdAt: string;
     };
+
+export type NotificationType = "comment" | "reply";
+
+export interface AppNotification {
+  id: number;
+  type: NotificationType;
+  songId: string;
+  songTitle: string | null;
+  actorName: string;
+  commentId: number | null;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export type ActivityType = "submission" | "like" | "comment" | "reply";
+
+export interface ActivityItem {
+  id: string;
+  type: ActivityType;
+  songId: string;
+  songTitle: string | null;
+  actorName: string;
+  occurredAt: string;
+}
 
 export interface CreateSongInput {
   youtubeUrl: string;
   description?: string;
+  allowDuplicate?: boolean;
 }
 
 export interface AirtableRecord {
@@ -102,5 +130,3 @@ export interface AirtableResponse {
   records: AirtableRecord[];
   offset?: string;
 }
-
-

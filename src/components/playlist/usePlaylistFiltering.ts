@@ -15,9 +15,13 @@ interface UsePlaylistFilteringOptions {
   selectedYear: PlaylistFilterValue;
   selectedMonth: PlaylistFilterValue;
   sortMode?: PlaylistSortMode;
+  viewMode?: PlaylistViewMode;
+  playedSongIds?: Set<string>;
+  currentUserId?: string;
 }
 
 export type PlaylistSortMode = "newest" | "most-liked";
+export type PlaylistViewMode = "all" | "saved" | "mine" | "played" | "unplayed";
 
 export function sortPlaylistSongs(
   songs: Song[],
@@ -51,20 +55,31 @@ export function usePlaylistFiltering({
   selectedYear,
   selectedMonth,
   sortMode = "newest",
+  viewMode = "all",
+  playedSongIds = new Set<string>(),
+  currentUserId,
 }: UsePlaylistFilteringOptions) {
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
-  const searchMatchedSongs = useMemo(() => {
-    if (!normalizedQuery) return songs;
+  const scopedSongs = useMemo(() => {
+    if (viewMode === "saved") return songs.filter((song) => song.bookmarked);
+    if (viewMode === "mine") return songs.filter((song) => Boolean(currentUserId) && song.submitterUserId === currentUserId);
+    if (viewMode === "played") return songs.filter((song) => playedSongIds.has(song.id));
+    if (viewMode === "unplayed") return songs.filter((song) => !playedSongIds.has(song.id));
+    return songs;
+  }, [currentUserId, playedSongIds, songs, viewMode]);
 
-    return songs.filter(
+  const searchMatchedSongs = useMemo(() => {
+    if (!normalizedQuery) return scopedSongs;
+
+    return scopedSongs.filter(
       (song) =>
         song.submitterName.toLowerCase().includes(normalizedQuery) ||
         (song.songTitle?.toLowerCase().includes(normalizedQuery) ?? false) ||
         (song.artistName?.toLowerCase().includes(normalizedQuery) ?? false) ||
         (song.description?.toLowerCase().includes(normalizedQuery) ?? false)
     );
-  }, [songs, normalizedQuery]);
+  }, [normalizedQuery, scopedSongs]);
 
   const availableYears = useMemo(() => {
     const years = new Set(searchMatchedSongs.map((song) => song.year));

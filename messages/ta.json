@@ -44,12 +44,29 @@
   },
   "playlist": {
     "allTracks": "அனைத்து பாடல்களும்",
+    "view": {
+      "ariaLabel": "பாடல் காட்சி வடிகட்டி",
+      "all": "All tracks",
+      "saved": "Saved tracks",
+      "mine": "My submissions",
+      "played": "Played recently",
+      "unplayed": "Not played"
+    },
+    "card": {
+      "untitled": "தலைப்பில்லாத பாடல்",
+      "sharedBy": "{name} பகிர்ந்தது",
+      "save": "பாடலை சேமி",
+      "removeSaved": "சேமித்த பாடல்களில் இருந்து நீக்கு"
+    },
     "sort": {
+      "ariaLabel": "பாடல்களை வரிசைப்படுத்து",
       "newest": "புதியது",
       "mostLiked": "அதிகம் விரும்பியது"
     },
     "filter": {
-      "all": "அனைத்தும்"
+      "all": "அனைத்தும்",
+      "yearAriaLabel": "ஆண்டு வடிகட்டி",
+      "monthAriaLabel": "மாத வடிகட்டி"
     },
     "search": {
       "placeholder": "பெயர், தலைப்பு, கலைஞர்...",
@@ -64,8 +81,13 @@
     },
     "notification": {
       "newComment": "{name} உங்கள் பாடலில் புதிய கருத்து சேர்த்தார்",
+      "newReply": "New reply from {name}",
       "dismissError": "பிழையை நிராகரி",
       "dismissNotification": "அறிவிப்பை நிராகரி"
+    },
+    "shareCopied": "Link ready to share",
+    "errors": {
+      "failedToSave": "Could not update saved tracks"
     },
     "footer": {
       "track": "{count, plural, one {# பாடல்} other {# பாடல்கள்}}",
@@ -83,8 +105,15 @@
     "descriptionPlaceholder": "இந்த பாடல் ஏன்?",
     "submitButton": "பட்டியலில் சேர்க்க",
     "submittingButton": "சேர்க்கிறது...",
+    "previewButton": "Preview link",
+    "previewingButton": "Checking link...",
+    "unknownTitle": "Untitled video",
+    "unavailableWarning": "This video may be unavailable or private.",
+    "duplicateWarning": "Already shared by {name}. Allow this as a re-share.",
     "errors": {
       "failedToAdd": "பாடல் சேர்க்கத் தவறியது",
+      "failedToPreview": "Failed to preview link",
+      "confirmDuplicate": "Confirm that this is an intentional re-share",
       "failedToRead": "சேர்க்கப்பட்ட பாடலை படிக்கத் தவறியது",
       "somethingWentWrong": "ஏதோ தவறு நடந்தது"
     },
@@ -98,6 +127,10 @@
     "added": "{date} இல் சேர்க்கப்பட்டது",
     "byArtist": "{artist} ஆல்",
     "signInToLike": "Sign in with a {domain} account to like"
+    ,"save": "Save"
+    ,"saved": "Saved"
+    ,"removeSaved": "Remove from saved"
+    ,"share": "Share"
   },
   "engagement": {
     "likedBy": "விரும்பியவர்கள்",
@@ -125,6 +158,26 @@
     },
     "signInToLike": "Sign in with a {domain} account to like",
     "signInToInteract": "Sign in with a {domain} account to add a track / like / comment"
+  },
+  "recap": {
+    "title": "Playlist recap",
+    "tracks": "Tracks",
+    "likes": "Likes",
+    "comments": "Comments",
+    "contributors": "Contributors",
+    "topTrack": "Top track: {title} ({date})",
+    "untitled": "Untitled"
+  },
+  "activity": {
+    "title": "Latest activity",
+    "submission": "{name} shared {title}",
+    "like": "{name} liked {title}",
+    "comment": "{name} commented on {title}",
+    "reply": "{name} replied on {title}",
+    "untitled": "an untitled track",
+    "livePulse": "நேரலை",
+    "empty": "சமீபத்திய செயல்பாடுகள் இன்னும் இல்லை.",
+    "unavailable": "செயல்பாடுகளை தற்போது ஏற்ற முடியவில்லை."
   },
   "error": {
     "title": "ஏதோ தவறு நடந்துவிட்டது",

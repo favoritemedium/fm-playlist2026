@@ -29,7 +29,8 @@ manual checks below rather than dedicated automated tests.
 
 After larger changes, verify these flows in a browser:
 
-1. Signed-out homepage shows the Clerk sign-in button.
+1. Signed-out homepage shows the playlist and Clerk sign-in button; likes,
+   saves, comments, and submissions remain mutation-gated.
 2. Allowed-domain user can view the playlist.
 3. Forbidden-domain user sees the account restriction message and can switch
    accounts.
@@ -53,7 +54,8 @@ After larger changes, verify these flows in a browser:
 With a running app, verify:
 
 - `GET /api/health` returns 200 without authentication.
-- `GET /api/songs` rejects unauthenticated users.
+- `GET /api/songs` is available without authentication, while `POST /api/songs`
+  rejects unauthenticated users.
 - `POST /api/songs` rejects malformed JSON, invalid YouTube URLs, and
   forbidden-domain users.
 - Allowed users can submit a valid YouTube URL.

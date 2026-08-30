@@ -44,12 +44,29 @@
   },
   "playlist": {
     "allTracks": "සියලුම ගීත",
+    "view": {
+      "ariaLabel": "ගීත දසුන් පෙරහන",
+      "all": "All tracks",
+      "saved": "Saved tracks",
+      "mine": "My submissions",
+      "played": "Played recently",
+      "unplayed": "Not played"
+    },
+    "card": {
+      "untitled": "මාතෘකාවක් නැති ගීතය",
+      "sharedBy": "{name} බෙදා ගත්තා",
+      "save": "ගීතය සුරකින්න",
+      "removeSaved": "සුරැකි ගීතවලින් ඉවත් කරන්න"
+    },
     "sort": {
+      "ariaLabel": "ගීත අනුපිළිවෙල",
       "newest": "නවතම",
       "mostLiked": "වැඩිපුර ප්‍රිය"
     },
     "filter": {
-      "all": "සියල්ල"
+      "all": "සියල්ල",
+      "yearAriaLabel": "වසර පෙරහන",
+      "monthAriaLabel": "මාස පෙරහන"
     },
     "search": {
       "placeholder": "නම, මාතෘකාව, ගායකයා...",
@@ -64,8 +81,13 @@
     },
     "notification": {
       "newComment": "{name} ඔබේ ගීතයට නව අදහසක් ලිව්වා",
+      "newReply": "New reply from {name}",
       "dismissError": "දෝෂය ඉවත් කරන්න",
       "dismissNotification": "දැනුම්දීම ඉවත් කරන්න"
+    },
+    "shareCopied": "Link ready to share",
+    "errors": {
+      "failedToSave": "Could not update saved tracks"
     },
     "footer": {
       "track": "{count, plural, one {# ගීතය} other {# ගීත}}",
@@ -83,8 +105,15 @@
     "descriptionPlaceholder": "මෙම ගීතය ඇයි?",
     "submitButton": "ලැයිස්තුවට එකතු කරන්න",
     "submittingButton": "එකතු කරමින්...",
+    "previewButton": "Preview link",
+    "previewingButton": "Checking link...",
+    "unknownTitle": "Untitled video",
+    "unavailableWarning": "This video may be unavailable or private.",
+    "duplicateWarning": "Already shared by {name}. Allow this as a re-share.",
     "errors": {
       "failedToAdd": "ගීතය එකතු කිරීමට අපොහොසත් විය",
+      "failedToPreview": "Failed to preview link",
+      "confirmDuplicate": "Confirm that this is an intentional re-share",
       "failedToRead": "එකතු කළ ගීතය කියවීමට අපොහොසත් විය",
       "somethingWentWrong": "දෝෂයක් ඇති විය"
     },
@@ -98,6 +127,10 @@
     "added": "{date} දින එකතු කළා",
     "byArtist": "{artist} විසින්",
     "signInToLike": "Sign in with a {domain} account to like"
+    ,"save": "Save"
+    ,"saved": "Saved"
+    ,"removeSaved": "Remove from saved"
+    ,"share": "Share"
   },
   "engagement": {
     "likedBy": "ප්‍රිය කළෝ",
@@ -125,6 +158,26 @@
     },
     "signInToLike": "Sign in with a {domain} account to like",
     "signInToInteract": "Sign in with a {domain} account to add a track / like / comment"
+  },
+  "recap": {
+    "title": "Playlist recap",
+    "tracks": "Tracks",
+    "likes": "Likes",
+    "comments": "Comments",
+    "contributors": "Contributors",
+    "topTrack": "Top track: {title} ({date})",
+    "untitled": "Untitled"
+  },
+  "activity": {
+    "title": "Latest activity",
+    "submission": "{name} shared {title}",
+    "like": "{name} liked {title}",
+    "comment": "{name} commented on {title}",
+    "reply": "{name} replied on {title}",
+    "untitled": "an untitled track",
+    "livePulse": "සජීවී",
+    "empty": "තවම මෑත ක්‍රියාකාරකම් නැත.",
+    "unavailable": "දැනට ක්‍රියාකාරකම් පූරණය කළ නොහැක."
   },
   "error": {
     "title": "යම් දෝෂයක් සිදු විය",

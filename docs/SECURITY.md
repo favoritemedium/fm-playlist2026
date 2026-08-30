@@ -6,13 +6,12 @@ Clerk handles authentication. The app enforces authorization in server code:
 
 - `src/lib/auth.ts` checks the primary Clerk email address against
   `ALLOWED_EMAIL_DOMAIN`.
-- `src/app/page.tsx` blocks the playlist UI for unauthenticated or forbidden
-  users.
-- `src/app/api/songs/route.ts` protects both `GET` and `POST`.
-- `src/app/api/songs/[songId]/likes/route.ts`,
-  `src/app/api/songs/[songId]/comments/route.ts`,
-  `src/app/api/comments/[commentId]/route.ts`, and
-  `src/app/api/engagement/events/route.ts` use the same server-side auth gate.
+- `src/app/page.tsx` serves read-only playlist content to unauthenticated users
+  and identifies forbidden-domain users.
+- `src/app/api/songs/route.ts` leaves `GET` public and protects `POST`.
+- Read-only `GET` likes/comments routes are public. Like/comment mutations,
+  bookmarks, notifications, and the engagement event stream use the same
+  server-side auth gate.
 - `GET /api/health` is intentionally public for orchestrators.
 
 Keep Clerk dashboard restrictions aligned with `ALLOWED_EMAIL_DOMAIN`.

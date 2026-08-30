@@ -3,6 +3,7 @@ import { authorizeApiRequest } from "@/lib/api-auth";
 import { getCurrentAppAuth } from "@/lib/auth";
 import {
   createSongComment,
+  createCommentNotifications,
   fetchSongComments,
   fetchSongEngagementSummary,
   fetchSongSubmitterUserId,
@@ -100,6 +101,13 @@ export async function POST(request: Request, context: SongCommentsRouteContext) 
       parentCommentId: parsedBody.data.parentCommentId,
     });
 
+    const notificationRecipients = await createCommentNotifications({
+      songId: parsedSongId.data,
+      commentId,
+      actorUserId: appAuth.user.id,
+      parentCommentId: parsedBody.data.parentCommentId,
+    });
+
     const [comments, summary, submitterUserId] = await Promise.all([
       fetchSongComments(parsedSongId.data, appAuth.user.id),
       fetchSongEngagementSummary(parsedSongId.data, appAuth.user.id),
@@ -121,6 +129,21 @@ export async function POST(request: Request, context: SongCommentsRouteContext) 
         commentId,
         commenterName: appAuth.user.name,
         songSubmitterUserId: submitterUserId,
+        recipientUserId: submitterUserId,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    for (const recipient of notificationRecipients) {
+      if (recipient.userId === submitterUserId) continue;
+      await publishEngagementEvent({
+        type: "song_comment_notification",
+        songId: summary.songId,
+        commentId,
+        commenterName: appAuth.user.name,
+        songSubmitterUserId: submitterUserId || "",
+        recipientUserId: recipient.userId,
+        notificationType: recipient.type,
         createdAt: new Date().toISOString(),
       });
     }

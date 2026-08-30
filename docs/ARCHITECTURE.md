@@ -9,8 +9,8 @@ the source of truth, and optional Airtable legacy sync.
 1. `src/middleware.ts` installs Clerk middleware and keeps `/api/health` public.
 2. `src/app/layout.tsx` wraps the app with `ClerkProvider`.
 3. `src/app/page.tsx` calls `getCurrentAppAuth()` on the server.
-4. Unauthenticated users see a sign-in screen. Forbidden-domain users see a
-   switch-account message.
+4. Unauthenticated users can browse read-only playlist content. Forbidden-domain
+   users see a switch-account message and cannot mutate content.
 5. Authenticated users trigger `getAllSongs()` and receive the playlist UI.
 6. `PlaylistView` opens an authenticated SSE connection only for signed-in
   users so likes, comments, and submitter notifications stay in sync.
@@ -55,17 +55,15 @@ failures are non-fatal and degrade to Postgres-only results.
 ## API Routes
 
 - `GET /api/health` is public and used only for health checks.
-- `GET /api/songs` returns songs for authenticated users from the allowed
-  domain.
+- `GET /api/songs` returns public read-only playlist data. `POST /api/songs`
+  requires an authenticated user from the allowed domain.
 - `POST /api/songs` validates the request body, extracts the YouTube video ID,
   and inserts a new app-sourced row.
-- `GET /api/songs/[songId]/likes` returns `{ summary, likers }` for an
-  authenticated song.
+- `GET /api/songs/[songId]/likes` returns `{ summary, likers }` publicly.
 - `POST /api/songs/[songId]/likes` likes a song and returns `{ summary }`.
 - `DELETE /api/songs/[songId]/likes` removes the current user's like and
   returns `{ summary }`.
-- `GET /api/songs/[songId]/comments` returns `{ comments, summary }` for an
-  authenticated song.
+- `GET /api/songs/[songId]/comments` returns `{ comments, summary }` publicly.
 - `POST /api/songs/[songId]/comments` creates a top-level comment or reply,
   enforces the 500-character limit plus 5-comments-per-minute rate limit, and
   returns `{ commentId, comments, summary }`.

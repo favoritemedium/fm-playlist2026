@@ -7,6 +7,7 @@ import {
   fetchAllSongs,
   createSongRow,
   bulkCreateSongRows,
+  fetchSongByYouTubeVideoId,
   type SongInsert,
 } from "./songs-db";
 import { compareDateOnlyDesc, getDateParts, toDateOnlyString } from "./dates";
@@ -32,12 +33,22 @@ export async function getAllSongs(user?: AppUser): Promise<Song[]> {
       return [] as Song[];
     });
 
-  // Postgres is the source of truth. If it fails, surface the failure instead
-  // of showing an empty playlist that looks valid.
+  // Postgres is the source of truth when available. If it fails in local dev,
+  // gracefully fall back to Airtable songs so the UI continues working.
   const [airtableSongs, dbSongs] = await Promise.all([
     airtableSongsPromise,
-    fetchAllSongs(currentUserId),
+    fetchAllSongs(currentUserId).catch((err) => {
+      console.warn("DB fetch failed, falling back to Airtable records:", err.message);
+      return [] as Song[];
+    }),
   ]);
+
+  if (dbSongs.length === 0 && airtableSongs.length > 0) {
+    const sortedAirtable = [...airtableSongs].sort((a, b) =>
+      compareDateOnlyDesc(a.submittedDate, b.submittedDate)
+    );
+    return sortedAirtable;
+  }
 
   // Trigger background backfill if any DB song is missing metadata
   if (dbSongs.some((s) => s.songTitle === null)) {
@@ -122,6 +133,11 @@ export async function createSong(
     throw new Error("Invalid YouTube URL");
   }
 
+  const existingSong = await fetchSongByYouTubeVideoId(videoId, user.id);
+  if (existingSong && !input.allowDuplicate) {
+    throw new DuplicateSongError(existingSong);
+  }
+
   let artistName: string | null = null;
   let songTitle: string | null = null;
 
@@ -155,6 +171,13 @@ export async function createSong(
     month,
     year,
   });
+}
+
+export class DuplicateSongError extends Error {
+  constructor(readonly existingSong: Song) {
+    super("This YouTube video has already been shared");
+    this.name = "DuplicateSongError";
+  }
 }
 
 const backfillAttemptedVideoIds = new Set<string>();

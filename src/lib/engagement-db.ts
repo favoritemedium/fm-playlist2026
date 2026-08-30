@@ -330,6 +330,48 @@ export async function createSongComment(args: {
   return result.rows[0].id;
 }
 
+export async function createCommentNotifications(args: {
+  songId: number;
+  commentId: number;
+  actorUserId: string;
+  parentCommentId: number | null;
+}): Promise<Array<{ userId: string; type: "comment" | "reply" }>> {
+  await ensureSchema();
+  const result = await getPool().query<{
+    submitter_user_id: string | null;
+    parent_user_id: string | null;
+  }>(
+    `SELECT s.submitter_user_id,
+       parent.user_id AS parent_user_id
+     FROM songs s
+     LEFT JOIN song_comments parent ON parent.id = $2
+     WHERE s.id = $1`,
+    [args.songId, args.parentCommentId]
+  );
+
+  const row = result.rows[0];
+  if (!row) return [];
+
+  const recipients = new Map<string, "comment" | "reply">();
+  if (row.submitter_user_id && row.submitter_user_id !== args.actorUserId) {
+    recipients.set(row.submitter_user_id, "comment");
+  }
+  if (row.parent_user_id && row.parent_user_id !== args.actorUserId) {
+    recipients.set(row.parent_user_id, "reply");
+  }
+
+  for (const [recipientUserId, type] of recipients) {
+    await getPool().query(
+      `INSERT INTO app_notifications
+         (recipient_user_id, actor_user_id, song_id, comment_id, type)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [recipientUserId, args.actorUserId, args.songId, args.commentId, type]
+    );
+  }
+
+  return Array.from(recipients, ([userId, type]) => ({ userId, type }));
+}
+
 async function getCommentOwnership(commentId: number): Promise<{
   songId: number;
   userId: string;

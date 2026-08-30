@@ -26,6 +26,7 @@ export const createSongInputSchema = z
       )
       .optional()
       .transform((value) => (value && value.length > 0 ? value : undefined)),
+    allowDuplicate: z.boolean().optional().default(false),
   })
   .strict();
 

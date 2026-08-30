@@ -42,7 +42,7 @@ export function LanguageDropdown() {
   };
 
   return (
-    <div ref={containerRef} className="relative inline-block text-left">
+    <div ref={containerRef} className="inline-block text-left">
       <button
         type="button"
         aria-expanded={open}

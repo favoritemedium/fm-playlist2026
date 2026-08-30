@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Eye, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { SignInButton } from "@clerk/nextjs";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,21 @@ import {
 } from "@/components/ui/dialog";
 import type { Song } from "@/types/song";
 
+interface TrackPreview {
+  videoId: string;
+  thumbnailUrl: string;
+  title: string | null;
+  artistName: string | null;
+  available: boolean;
+  duplicate: {
+    id: string;
+    title: string | null;
+    artistName: string | null;
+    submitterName: string;
+  } | null;
+  youtubeUrl: string;
+}
+
 interface AddTrackDialogProps {
   onTrackAdded: (song: Song) => void;
   isLoggedIn?: boolean;
@@ -31,7 +47,10 @@ interface AddTrackDialogProps {
 export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<TrackPreview | null>(null);
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [formData, setFormData] = useState({
     youtubeUrl: "",
     description: "",
@@ -41,16 +60,62 @@ export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDia
 
   const errorId = "add-track-error";
 
+  const handlePreview = async (): Promise<boolean> => {
+    const youtubeUrl = formData.youtubeUrl.trim();
+    if (!youtubeUrl) return false;
+
+    setError(null);
+    setIsPreviewing(true);
+    try {
+      const response = await fetch("/api/youtube/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ youtubeUrl }),
+      });
+      const data = (await response.json()) as { error?: string } & Partial<TrackPreview>;
+      if (!response.ok || !data.videoId) {
+        throw new Error(data.error || t("errors.failedToPreview"));
+      }
+      setPreview({
+        videoId: data.videoId,
+        thumbnailUrl: data.thumbnailUrl || "",
+        title: data.title || null,
+        artistName: data.artistName || null,
+        available: Boolean(data.available),
+        duplicate: data.duplicate || null,
+        youtubeUrl,
+      });
+      setAllowDuplicate(false);
+      return true;
+    } catch (err) {
+      setPreview(null);
+      setError(err instanceof Error ? err.message : t("errors.somethingWentWrong"));
+      return false;
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const youtubeUrl = formData.youtubeUrl.trim();
+    if (!preview || preview.youtubeUrl !== youtubeUrl) {
+      const didPreview = await handlePreview();
+      if (!didPreview) return;
+      return;
+    }
+    if (preview.duplicate && !allowDuplicate) {
+      setError(t("errors.confirmDuplicate"));
+      return;
+    }
     setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/songs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, allowDuplicate }),
       });
 
       const data = (await response.json()) as unknown;
@@ -73,6 +138,8 @@ export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDia
       const song = data as Song;
       onTrackAdded(song);
       setFormData({ youtubeUrl: "", description: "" });
+      setPreview(null);
+      setAllowDuplicate(false);
       setIsOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.somethingWentWrong"));
@@ -84,12 +151,16 @@ export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDia
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       setIsOpen(open);
-      if (!open) setError(null);
+      if (!open) {
+        setError(null);
+        setPreview(null);
+        setAllowDuplicate(false);
+      }
     }}>
       <DialogTrigger asChild>
-        <Button className="w-full lg:w-auto bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/30 px-6 sm:px-8 py-5 sm:py-6 font-bold rounded-xl">
-          <Plus className="w-5 h-5 mr-2" strokeWidth={3} />
-          {t("button")}
+        <Button className="h-9 w-full bg-primary hover:bg-primary/90 text-white shadow-sm shadow-primary/20 px-3.5 sm:px-4 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all hover:scale-[1.02] cursor-pointer sm:w-auto">
+          <Plus className="size-4 shrink-0" strokeWidth={3} />
+          <span>{t("button")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md bg-white border-2 border-primary/20 max-h-[90vh] overflow-y-auto">
@@ -132,9 +203,11 @@ export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDia
                 inputMode="url"
                 autoComplete="off"
                 value={formData.youtubeUrl}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, youtubeUrl: e.target.value }))
-                }
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, youtubeUrl: e.target.value }));
+                  setPreview(null);
+                  setAllowDuplicate(false);
+                }}
                 placeholder={t("youtubeUrlPlaceholder")}
                 required
                 maxLength={YOUTUBE_URL_MAX_LENGTH}
@@ -142,7 +215,40 @@ export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDia
                 aria-describedby={error ? errorId : undefined}
                 className="bg-input-background border-2 border-border focus:border-primary"
               />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void handlePreview()}
+                disabled={isPreviewing || !formData.youtubeUrl.trim()}
+                className="mt-2 w-full rounded-xl font-bold"
+              >
+                <Eye className="size-4" />
+                {isPreviewing ? t("previewingButton") : t("previewButton")}
+              </Button>
             </div>
+            {preview && (
+              <div className="overflow-hidden rounded-2xl border border-border bg-background">
+                <div className="relative aspect-video bg-black">
+                  <Image src={preview.thumbnailUrl} alt="" fill className="object-cover" />
+                </div>
+                <div className="space-y-1 p-3">
+                  <p className="font-bold text-foreground">{preview.title || t("unknownTitle")}</p>
+                  {preview.artistName && <p className="text-sm text-muted-foreground">{preview.artistName}</p>}
+                  {!preview.available && <p className="text-sm font-semibold text-destructive">{t("unavailableWarning")}</p>}
+                  {preview.duplicate && (
+                    <label className="mt-3 flex items-start gap-2 rounded-xl border border-secondary/30 bg-secondary/10 p-3 text-sm font-semibold">
+                      <input
+                        type="checkbox"
+                        checked={allowDuplicate}
+                        onChange={(event) => setAllowDuplicate(event.target.checked)}
+                        className="mt-1 accent-primary"
+                      />
+                      <span>{t("duplicateWarning", { name: preview.duplicate.submitterName })}</span>
+                    </label>
+                  )}
+                </div>
+              </div>
+            )}
             <div>
               <label htmlFor="description" className="block mb-2 font-bold text-foreground">
                 {t("descriptionLabel")}
@@ -172,7 +278,7 @@ export function AddTrackDialog({ onTrackAdded, isLoggedIn = false }: AddTrackDia
             )}
             <Button
               type="submit"
-              disabled={isSubmitting || !formData.youtubeUrl.trim()}
+              disabled={isSubmitting || isPreviewing || !preview || (Boolean(preview.duplicate) && !allowDuplicate)}
               aria-busy={isSubmitting}
               className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-6 shadow-lg shadow-primary/30 rounded-xl"
             >

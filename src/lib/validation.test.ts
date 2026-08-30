@@ -22,6 +22,7 @@ describe("createSongInputSchema", () => {
       expect(result.data).toEqual({
         youtubeUrl: "https://youtu.be/dQw4w9WgXcQ",
         description: "A classic",
+        allowDuplicate: false,
       });
     }
   });

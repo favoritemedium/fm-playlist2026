@@ -2,11 +2,23 @@
 
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowDownUp, Bell, X, AlertTriangle } from "lucide-react";
+import {
+  ArrowDownUp,
+  Bell,
+  X,
+  AlertTriangle,
+  ListMusic,
+  Bookmark,
+  User,
+  CheckCircle2,
+  Sparkles,
+  Filter,
+} from "lucide-react";
 import { SignOutButton } from "@clerk/nextjs";
 import { PlaylistSettings } from "./PlaylistSettings";
 import { LanguageDropdown } from "./LanguageDropdown";
 import type {
+  AppNotification,
   Song,
   SongEngagementEvent,
   SongEngagementSummary,
@@ -23,6 +35,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { PlaylistRecap } from "./PlaylistRecap";
+import { ActivityPanel } from "./ActivityPanel";
 import { MonthYearFilter } from "./MonthYearFilter";
 import { SearchBar } from "./SearchBar";
 import { VideoPlayer } from "./VideoPlayer";
@@ -33,6 +47,7 @@ import { useEngagementEvents } from "./useEngagementEvents";
 import {
   usePlaylistFiltering,
   type PlaylistSortMode,
+  type PlaylistViewMode,
 } from "./usePlaylistFiltering";
 import {
   Select,
@@ -55,20 +70,13 @@ interface PlaylistViewProps {
   isForbidden?: boolean;
 }
 
-interface PlaylistNotification {
-  id: string;
-  songId: string;
-  commentId: number;
-  commenterName: string;
-  createdAt: string;
-}
-
 interface SummaryResponse {
   summary: SongEngagementSummary;
 }
 
 const AUTOPLAY_STORAGE_KEY = "fm-playlist-autoplay-enabled";
 const CONTINUE_PLAYING_STORAGE_KEY = "fm-playlist-continue-playing-enabled";
+const PLAYED_SONGS_STORAGE_KEY = "fm-playlist-played-songs";
 
 export function PlaylistView({ initialSongs, user, isForbidden = false }: PlaylistViewProps) {
   const [songs, setSongs] = useState<Song[]>(initialSongs);
@@ -79,14 +87,20 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
     getCurrentMonth()
   );
   const [sortMode, setSortMode] = useState<PlaylistSortMode>("newest");
+  const [viewMode, setViewMode] = useState<PlaylistViewMode>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [playedSongIds, setPlayedSongIds] = useState<Set<string>>(() => new Set());
   const [activeVideo, setActiveVideo] = useState<Song | null>(null);
   const [engagementSongId, setEngagementSongId] = useState<string | null>(null);
   const [pendingLikeSongIds, setPendingLikeSongIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [pendingBookmarkSongIds, setPendingBookmarkSongIds] = useState<Set<string>>(() => new Set());
   const [engagementError, setEngagementError] = useState<string | null>(null);
-  const [notifications, setNotifications] = useState<PlaylistNotification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
+  const [urlStateReady, setUrlStateReady] = useState(false);
+  const [requestedSongId, setRequestedSongId] = useState<string | null>(null);
   const [autoplayEnabled, setAutoplayEnabled] = useState(false);
   const [continuePlaying, setContinuePlaying] = useState(false);
   const [shouldAutoplayActiveVideo, setShouldAutoplayActiveVideo] =
@@ -107,6 +121,9 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
     selectedYear,
     selectedMonth,
     sortMode,
+    viewMode,
+    playedSongIds,
+    currentUserId: user?.id,
   });
 
   useEffect(() => {
@@ -119,10 +136,75 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
       if (savedContinuePlaying !== null) {
         setContinuePlaying(savedContinuePlaying === "true");
       }
+      const savedPlayedSongs = window.localStorage.getItem(PLAYED_SONGS_STORAGE_KEY);
+      if (savedPlayedSongs) {
+        const parsed = JSON.parse(savedPlayedSongs) as unknown;
+        if (Array.isArray(parsed)) {
+          setPlayedSongIds(new Set(parsed.filter((id): id is string => typeof id === "string")));
+        }
+      }
     } catch {
       // Ignore unavailable localStorage, such as private browsing restrictions.
     }
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const yearParam = params.get("year");
+    const monthParam = params.get("month");
+    const year = Number(yearParam);
+    const month = Number(monthParam);
+    if (yearParam === ALL_FILTER_VALUE || Number.isInteger(year)) {
+      setSelectedYear(yearParam === ALL_FILTER_VALUE ? ALL_FILTER_VALUE : year);
+    }
+    if (monthParam === ALL_FILTER_VALUE || Number.isInteger(month)) {
+      setSelectedMonth(monthParam === ALL_FILTER_VALUE ? ALL_FILTER_VALUE : month);
+    }
+    const sort = params.get("sort");
+    if (sort === "newest" || sort === "most-liked") setSortMode(sort);
+    const view = params.get("view");
+    if (["all", "saved", "mine", "played", "unplayed"].includes(view || "")) {
+      setViewMode(view as PlaylistViewMode);
+    }
+    if (params.get("search")) setSearchQuery(params.get("search") || "");
+    setRequestedSongId(params.get("song"));
+    setUrlStateReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!urlStateReady) return;
+    const params = new URLSearchParams();
+    params.set("year", selectedYear.toString());
+    params.set("month", selectedMonth.toString());
+    if (sortMode !== "newest") params.set("sort", sortMode);
+    if (viewMode !== "all") params.set("view", viewMode);
+    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    if (activeVideo?.id || requestedSongId) params.set("song", activeVideo?.id || requestedSongId || "");
+    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+  }, [activeVideo?.id, requestedSongId, searchQuery, selectedMonth, selectedYear, sortMode, urlStateReady, viewMode]);
+
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
+    fetch("/api/notifications")
+      .then((response) => response.json() as Promise<{ notifications?: AppNotification[] }>)
+      .then((data) => setNotifications(data.notifications || []))
+      .catch(() => undefined);
+  }, [user]);
+
+  useEffect(() => {
+    if (!requestedSongId) return;
+    const requested = songs.find((song) => song.id === requestedSongId);
+    if (requested) {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has("year")) setSelectedYear(requested.year);
+      if (!params.has("month")) setSelectedMonth(requested.month);
+      setActiveVideo(requested);
+      setRequestedSongId(null);
+    }
+  }, [requestedSongId, songs]);
 
   // Keep year and month selection valid as the search result set changes.
   useEffect(() => {
@@ -214,16 +296,19 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
         return;
       }
 
-      const notification = {
-        id: `${event.songId}-${event.commentId}`,
+      const notification: AppNotification = {
+        id: Number(`${event.commentId}`),
+        type: event.notificationType || "comment",
         songId: event.songId,
         commentId: event.commentId,
-        commenterName: event.commenterName,
+        songTitle: null,
+        actorName: event.commenterName,
         createdAt: event.createdAt,
+        readAt: null,
       };
 
       setNotifications((current) => {
-        if (current.some((item) => item.id === notification.id)) return current;
+        if (current.some((item) => item.commentId === notification.commentId && item.songId === notification.songId)) return current;
         return [notification, ...current].slice(0, 3);
       });
     },
@@ -231,6 +316,31 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
   );
 
   useEngagementEvents(user ? applyEngagementEvent : null);
+
+  const setBookmarkPending = useCallback((songId: string, pending: boolean) => {
+    setPendingBookmarkSongIds((current) => {
+      const next = new Set(current);
+      if (pending) next.add(songId);
+      else next.delete(songId);
+      return next;
+    });
+  }, []);
+
+  const handleBookmarkToggle = useCallback(async (song: Song) => {
+    if (!user || pendingBookmarkSongIds.has(song.id)) return;
+    const nextBookmarked = !song.bookmarked;
+    setSongs((current) => current.map((item) => item.id === song.id ? { ...item, bookmarked: nextBookmarked } : item));
+    setBookmarkPending(song.id, true);
+    try {
+      const response = await fetch(`/api/songs/${song.id}/bookmark`, { method: nextBookmarked ? "POST" : "DELETE" });
+      if (!response.ok) throw new Error(t("errors.failedToSave"));
+    } catch (error) {
+      setSongs((current) => current.map((item) => item.id === song.id ? { ...item, bookmarked: song.bookmarked } : item));
+      setEngagementError(error instanceof Error ? error.message : t("errors.failedToSave"));
+    } finally {
+      setBookmarkPending(song.id, false);
+    }
+  }, [pendingBookmarkSongIds, setBookmarkPending, t, user]);
 
   const setLikePending = useCallback((songId: string, pending: boolean) => {
     setPendingLikeSongIds((current) => {
@@ -404,6 +514,16 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
     (song: Song) => {
       setActiveVideo(song);
       setShouldAutoplayActiveVideo(autoplayEnabled);
+      setPlayedSongIds((current) => {
+        if (current.has(song.id)) return current;
+        const next = new Set(current).add(song.id);
+        try {
+          window.localStorage.setItem(PLAYED_SONGS_STORAGE_KEY, JSON.stringify(Array.from(next).slice(-200)));
+        } catch {
+          // Ignore unavailable localStorage.
+        }
+        return next;
+      });
     },
     [autoplayEnabled]
   );
@@ -420,8 +540,21 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
     setEngagementSongId(song.id);
   }, []);
 
+  const handleShare = useCallback(async (song: Song) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("song", song.id);
+    try {
+      if (navigator.share) await navigator.share({ title: song.songTitle || "FM Playlist", url: url.toString() });
+      else await navigator.clipboard.writeText(url.toString());
+      setShareNotice(t("shareCopied"));
+      window.setTimeout(() => setShareNotice(null), 2500);
+    } catch {
+      // Ignore cancelled native shares.
+    }
+  }, [t]);
+
   const handleNotificationOpen = useCallback(
-    (notification: PlaylistNotification) => {
+    (notification: AppNotification) => {
       const song = songs.find((item) => item.id === notification.songId);
       if (!song) return;
 
@@ -430,6 +563,11 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
       setActiveVideo(song);
       setShouldAutoplayActiveVideo(false);
       setEngagementSongId(song.id);
+      void fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: notification.id }),
+      });
       setNotifications((current) =>
         current.filter((item) => item.id !== notification.id)
       );
@@ -437,7 +575,12 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
     [songs]
   );
 
-  const dismissNotification = useCallback((notificationId: string) => {
+  const dismissNotification = useCallback((notificationId: number) => {
+    void fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: notificationId }),
+    });
     setNotifications((current) =>
       current.filter((notification) => notification.id !== notificationId)
     );
@@ -487,53 +630,114 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
           </Alert>
         )}
 
-        {/* Controls */}
+        {/* Unified Discovery Toolbar */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between mb-10"
+          className="mb-6 sm:mb-8 rounded-2xl bg-white/90 border border-border/80 shadow-sm backdrop-blur-md p-2.5 sm:p-2.5"
         >
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full lg:w-auto">
-            <MonthYearFilter
-              availableYears={availableYears}
-              availableMonths={availableMonths}
-              selectedYear={selectedYear}
-              selectedMonth={selectedMonth}
-              onYearChange={handleYearChange}
-              onMonthChange={handleMonthChange}
-            />
-            <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            <div className="flex items-center gap-2 bg-white px-3 sm:px-5 py-2 sm:py-3 rounded-xl shadow-md border border-border w-full sm:w-auto">
-              <ArrowDownUp
-                className="w-5 h-5 text-secondary shrink-0"
-                strokeWidth={2.5}
-              />
-              <Select
-                value={sortMode}
-                onValueChange={(value) => setSortMode(value as PlaylistSortMode)}
-              >
-                <SelectTrigger className="flex-1 sm:w-36 sm:flex-none bg-transparent border-0 shadow-none font-semibold">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">{t("sort.newest")}</SelectItem>
-                  <SelectItem value="most-liked">{t("sort.mostLiked")}</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5 sm:gap-2">
+            
+            {/* Search Input: Full width on mobile, compact on desktop */}
+            <div className="w-full lg:w-72 xl:w-80 lg:order-2">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
+            </div>
+
+            {/* Filter Controls: 2x2 Grid on Mobile (<sm), Flex-Row on Tablet/Desktop (sm+) */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 flex-1 min-w-0 lg:order-1">
+              
+              {/* Date Filter */}
+              <div className="col-span-1 sm:w-auto min-w-0">
+                <MonthYearFilter
+                  availableYears={availableYears}
+                  availableMonths={availableMonths}
+                  selectedYear={selectedYear}
+                  selectedMonth={selectedMonth}
+                  onYearChange={handleYearChange}
+                  onMonthChange={handleMonthChange}
+                />
+              </div>
+
+              {/* View Mode Filter */}
+              <div className="col-span-1 flex items-center justify-between gap-1.5 bg-neutral-100/80 hover:bg-neutral-100 px-2.5 rounded-xl border border-border/60 transition-colors h-9 min-w-0">
+                <Filter className="size-3.5 text-secondary shrink-0" strokeWidth={2.5} />
+                <Select value={viewMode} onValueChange={(value) => setViewMode(value as PlaylistViewMode)}>
+                  <SelectTrigger
+                    aria-label={t("view.ariaLabel")}
+                    className="h-7 border-0 bg-transparent px-1 text-xs font-bold shadow-none hover:text-primary focus:ring-0 w-full justify-between sm:w-auto"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">
+                      <span className="flex items-center gap-1.5">
+                        <ListMusic className="size-3.5 text-secondary" />
+                        <span>{t("view.all")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="saved">
+                      <span className="flex items-center gap-1.5">
+                        <Bookmark className="size-3.5 text-primary" />
+                        <span>{t("view.saved")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="mine">
+                      <span className="flex items-center gap-1.5">
+                        <User className="size-3.5 text-secondary" />
+                        <span>{t("view.mine")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="played">
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 className="size-3.5 text-emerald-600" />
+                        <span>{t("view.played")}</span>
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="unplayed">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="size-3.5 text-amber-500" />
+                        <span>{t("view.unplayed")}</span>
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Sort Mode Filter */}
+              <div className="col-span-1 flex items-center justify-between gap-1.5 bg-neutral-100/80 hover:bg-neutral-100 px-2.5 rounded-xl border border-border/60 transition-colors h-9 min-w-0">
+                <ArrowDownUp className="size-3.5 text-secondary shrink-0" strokeWidth={2.5} />
+                <Select
+                  value={sortMode}
+                  onValueChange={(value) => setSortMode(value as PlaylistSortMode)}
+                >
+                  <SelectTrigger
+                    aria-label={t("sort.ariaLabel")}
+                    className="h-7 border-0 bg-transparent px-1 text-xs font-bold shadow-none hover:text-primary focus:ring-0 w-full justify-between sm:w-auto"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">{t("sort.newest")}</SelectItem>
+                    <SelectItem value="most-liked">{t("sort.mostLiked")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Add Track stays with the filters so tablet layouts do not strand it on its own row. */}
+              <div className="col-span-1 shrink-0">
+                <AddTrackDialog
+                  onTrackAdded={handleTrackAdded}
+                  isLoggedIn={Boolean(user) && !isForbidden}
+                />
+              </div>
+
             </div>
 
           </div>
-
-          <div className="w-full lg:w-auto">
-            <AddTrackDialog
-              onTrackAdded={handleTrackAdded}
-              isLoggedIn={Boolean(user) && !isForbidden}
-            />
-          </div>
         </motion.div>
 
-        {(engagementError || notifications.length > 0) && (
+        {(engagementError || shareNotice || notifications.length > 0) && (
           <div className="mb-8 space-y-3" aria-live="polite">
             {engagementError && (
               <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive">
@@ -549,6 +753,11 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
                 </button>
               </div>
             )}
+            {shareNotice && (
+              <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary">
+                {shareNotice}
+              </div>
+            )}
             {notifications.map((notification) => (
               <div
                 key={notification.id}
@@ -561,7 +770,9 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
                 >
                   <Bell className="size-5 shrink-0 text-secondary" />
                   <span className="truncate text-sm font-bold text-foreground">
-                    {t("notification.newComment", { name: notification.commenterName })}
+                    {notification.type === "reply"
+                      ? t("notification.newReply", { name: notification.actorName })
+                      : t("notification.newComment", { name: notification.actorName })}
                   </span>
                 </button>
                 <button
@@ -600,7 +811,8 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
             )}
           </motion.div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
+            <PlaylistRecap songs={filteredSongs} onSelectSong={handleSongSelect} />
             {currentActive && (
               <VideoPlayer
                 song={currentActive}
@@ -613,12 +825,29 @@ export function PlaylistView({ initialSongs, user, isForbidden = false }: Playli
                 onLikeToggle={handleLikeToggle}
                 onOpenEngagement={handleOpenEngagement}
                 onVideoEnd={handleVideoEnd}
+                isBookmarked={currentActive.bookmarked}
+                isBookmarkPending={pendingBookmarkSongIds.has(currentActive.id)}
+                onBookmarkToggle={handleBookmarkToggle}
+                onShare={handleShare}
               />
             )}
+            <ActivityPanel
+              onSelectSong={(songId) => {
+                const song = songs.find((item) => item.id === songId);
+                if (!song) return;
+                setSelectedYear(song.year);
+                setSelectedMonth(song.month);
+                handleSongSelect(song);
+              }}
+            />
             <ThumbnailGrid
               songs={filteredSongs}
               activeVideoId={currentActive?.id || null}
+              playedSongIds={playedSongIds}
               onSelect={handleSongSelect}
+              isLoggedIn={Boolean(user) && !isForbidden}
+              pendingBookmarkSongIds={pendingBookmarkSongIds}
+              onBookmarkToggle={handleBookmarkToggle}
             />
           </div>
         )}

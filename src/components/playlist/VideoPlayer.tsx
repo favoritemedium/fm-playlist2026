@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { Heart, MessageSquare } from "lucide-react";
+import { Bookmark, Heart, MessageSquare, Share2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Song } from "@/types/song";
 import { formatDateOnlyForDisplay } from "@/lib/dates";
@@ -19,6 +19,10 @@ interface VideoPlayerProps {
   onLikeToggle: (song: Song) => void;
   onOpenEngagement: (song: Song) => void;
   onVideoEnd?: () => void;
+  isBookmarked?: boolean;
+  isBookmarkPending?: boolean;
+  onBookmarkToggle?: (song: Song) => void;
+  onShare?: (song: Song) => void;
 }
 
 export function VideoPlayer({
@@ -29,6 +33,10 @@ export function VideoPlayer({
   onLikeToggle,
   onOpenEngagement,
   onVideoEnd,
+  isBookmarked = false,
+  isBookmarkPending = false,
+  onBookmarkToggle,
+  onShare,
 }: VideoPlayerProps) {
   const t = useTranslations("videoPlayer");
   const locale = useLocale();
@@ -62,9 +70,9 @@ export function VideoPlayer({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-primary/20"
+      className="overflow-hidden rounded-2xl border-2 border-primary/20 bg-white shadow-xl lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)]"
     >
-      <div className="relative aspect-video bg-black">
+      <div className="relative aspect-video bg-black lg:aspect-auto lg:min-h-[22rem]">
         <iframe
           ref={iframeRef}
           key={song.id}
@@ -87,7 +95,7 @@ export function VideoPlayer({
           }}
         />
       </div>
-      <div className="p-4 sm:p-6 space-y-3">
+      <div className="space-y-3 p-4 sm:p-6 lg:flex lg:flex-col lg:justify-center">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className="font-bold text-foreground">{song.submitterName}</p>
           {song.songTitle && (
@@ -136,6 +144,29 @@ export function VideoPlayer({
             <MessageSquare className="size-4 text-secondary" />
             {song.commentCount}
           </Button>
+          {isLoggedIn && onBookmarkToggle && (
+            <Button
+              type="button"
+              disabled={isBookmarkPending}
+              onClick={() => onBookmarkToggle(song)}
+              title={isBookmarked ? t("removeSaved") : t("save")}
+              className={isBookmarked ? "bg-primary hover:bg-primary/90 text-white font-bold rounded-xl" : "bg-white text-foreground border-2 border-border hover:border-primary font-bold rounded-xl"}
+            >
+              <Bookmark className="size-4" fill={isBookmarked ? "currentColor" : "none"} />
+              {isBookmarked ? t("saved") : t("save")}
+            </Button>
+          )}
+          {onShare && (
+            <Button
+              type="button"
+              onClick={() => onShare(song)}
+              title={t("share")}
+              className="bg-white text-foreground border-2 border-border hover:border-secondary font-bold rounded-xl"
+            >
+              <Share2 className="size-4 text-secondary" />
+              {t("share")}
+            </Button>
+          )}
         </div>
       </div>
     </motion.div>

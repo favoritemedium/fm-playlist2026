@@ -44,12 +44,29 @@
   },
   "playlist": {
     "allTracks": "Semua Lagu",
+    "view": {
+      "ariaLabel": "Filter tampilan lagu",
+      "all": "All tracks",
+      "saved": "Saved tracks",
+      "mine": "My submissions",
+      "played": "Played recently",
+      "unplayed": "Not played"
+    },
+    "card": {
+      "untitled": "Lagu tanpa judul",
+      "sharedBy": "Dibagikan oleh {name}",
+      "save": "Simpan lagu",
+      "removeSaved": "Hapus dari lagu tersimpan"
+    },
     "sort": {
+      "ariaLabel": "Urutkan lagu",
       "newest": "Terbaru",
       "mostLiked": "Paling disukai"
     },
     "filter": {
-      "all": "Semua"
+      "all": "Semua",
+      "yearAriaLabel": "Filter tahun",
+      "monthAriaLabel": "Filter bulan"
     },
     "search": {
       "placeholder": "Cari nama, judul, artis...",
@@ -64,8 +81,13 @@
     },
     "notification": {
       "newComment": "Komentar baru dari {name} di lagumu",
+      "newReply": "New reply from {name}",
       "dismissError": "Tutup error",
       "dismissNotification": "Tutup notifikasi"
+    },
+    "shareCopied": "Link ready to share",
+    "errors": {
+      "failedToSave": "Could not update saved tracks"
     },
     "footer": {
       "track": "{count, plural, one {# lagu} other {# lagu}}",
@@ -83,8 +105,15 @@
     "descriptionPlaceholder": "Kenapa lagu ini?",
     "submitButton": "Tambah ke Playlist",
     "submittingButton": "Menambahkan...",
+    "previewButton": "Preview link",
+    "previewingButton": "Checking link...",
+    "unknownTitle": "Untitled video",
+    "unavailableWarning": "This video may be unavailable or private.",
+    "duplicateWarning": "Already shared by {name}. Allow this as a re-share.",
     "errors": {
       "failedToAdd": "Gagal menambahkan lagu",
+      "failedToPreview": "Failed to preview link",
+      "confirmDuplicate": "Confirm that this is an intentional re-share",
       "failedToRead": "Gagal membaca lagu yang ditambahkan",
       "somethingWentWrong": "Terjadi kesalahan"
     },
@@ -98,6 +127,10 @@
     "added": "Ditambahkan {date}",
     "byArtist": "oleh {artist}",
     "signInToLike": "Masuk dengan akun {domain} untuk menyukai"
+    ,"save": "Save"
+    ,"saved": "Saved"
+    ,"removeSaved": "Remove from saved"
+    ,"share": "Share"
   },
   "engagement": {
     "likedBy": "Disukai oleh",
@@ -125,6 +158,26 @@
     },
     "signInToLike": "Masuk dengan akun {domain} untuk menyukai",
     "signInToInteract": "Masuk dengan akun {domain} untuk menambahkan lagu / menyukai / berkomentar"
+  },
+  "recap": {
+    "title": "Playlist recap",
+    "tracks": "Tracks",
+    "likes": "Likes",
+    "comments": "Comments",
+    "contributors": "Contributors",
+    "topTrack": "Top track: {title} ({date})",
+    "untitled": "Untitled"
+  },
+  "activity": {
+    "title": "Latest activity",
+    "submission": "{name} shared {title}",
+    "like": "{name} liked {title}",
+    "comment": "{name} commented on {title}",
+    "reply": "{name} replied on {title}",
+    "untitled": "an untitled track",
+    "livePulse": "Langsung",
+    "empty": "Belum ada aktivitas terbaru.",
+    "unavailable": "Aktivitas tidak dapat dimuat saat ini."
   },
   "error": {
     "title": "Terjadi kesalahan",

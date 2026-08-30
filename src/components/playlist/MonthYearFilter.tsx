@@ -39,46 +39,55 @@ export function MonthYearFilter({
   const locale = useLocale();
 
   function getLocalizedMonthName(month: number): string {
-    return new Intl.DateTimeFormat(locale, { month: "long" }).format(
+    return new Intl.DateTimeFormat(locale, { month: "short" }).format(
       new Date(2024, month - 1, 1)
     );
   }
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 bg-white px-3 sm:px-5 py-2 sm:py-3 rounded-xl shadow-md border border-border w-full sm:w-auto">
-      <Calendar className="w-5 h-5 text-secondary shrink-0" strokeWidth={2.5} />
-      <Select
-        value={selectedYear.toString()}
-        onValueChange={(value) => onYearChange(parseFilterValue(value))}
-      >
-        <SelectTrigger className="flex-1 sm:w-28 sm:flex-none bg-transparent border-0 shadow-none font-semibold">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_FILTER_VALUE}>{t("all")}</SelectItem>
-          {availableYears.map((year) => (
-            <SelectItem key={year} value={year.toString()}>
-              {year}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={selectedMonth.toString()}
-        onValueChange={(value) => onMonthChange(parseFilterValue(value))}
-      >
-        <SelectTrigger className="flex-1 sm:w-36 sm:flex-none bg-transparent border-0 shadow-none font-semibold">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_FILTER_VALUE}>{t("all")}</SelectItem>
-          {availableMonths.map((month) => (
-            <SelectItem key={month} value={month.toString()}>
-              {getLocalizedMonthName(month)}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex h-9 w-full items-center justify-between gap-1 rounded-xl border border-border/60 bg-neutral-100/80 px-2 sm:px-2.5 transition-colors hover:bg-neutral-100 sm:w-auto">
+      <Calendar className="size-3.5 shrink-0 text-secondary" strokeWidth={2.5} />
+      <div className="flex flex-1 items-center justify-center sm:justify-start">
+        <Select
+          value={selectedYear.toString()}
+          onValueChange={(value) => onYearChange(parseFilterValue(value))}
+        >
+          <SelectTrigger
+            aria-label={t("yearAriaLabel")}
+            className="h-7 border-0 bg-transparent px-1 text-xs font-bold shadow-none hover:text-primary focus:ring-0"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_FILTER_VALUE}>{t("all")}</SelectItem>
+            {availableYears.map((year) => (
+              <SelectItem key={year} value={year.toString()}>
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="px-0.5 text-xs font-bold text-border">/</span>
+        <Select
+          value={selectedMonth.toString()}
+          onValueChange={(value) => onMonthChange(parseFilterValue(value))}
+        >
+          <SelectTrigger
+            aria-label={t("monthAriaLabel")}
+            className="h-7 border-0 bg-transparent px-1 text-xs font-bold shadow-none hover:text-primary focus:ring-0"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_FILTER_VALUE}>{t("all")}</SelectItem>
+            {availableMonths.map((month) => (
+              <SelectItem key={month} value={month.toString()}>
+                {getLocalizedMonthName(month)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

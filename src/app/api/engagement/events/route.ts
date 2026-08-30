@@ -31,6 +31,7 @@ export async function GET() {
       cleanup = subscribeToEngagementEvents((event) => {
         if (
           event.type === "song_comment_notification" &&
+          event.recipientUserId !== appAuth.user.id &&
           event.songSubmitterUserId !== appAuth.user.id
         ) {
           return;

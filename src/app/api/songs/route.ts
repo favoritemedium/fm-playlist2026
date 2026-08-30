@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { authorizeApiRequest } from "@/lib/api-auth";
 import { getCurrentAppAuth } from "@/lib/auth";
-import { getAllSongs, createSong } from "@/lib/songs";
+import { DuplicateSongError, getAllSongs, createSong } from "@/lib/songs";
 import { makeApiError } from "@/lib/api";
 import { createSongInputSchema } from "@/lib/validation";
 
@@ -53,6 +53,16 @@ export async function POST(request: NextRequest) {
     const song = await createSong(parsed.data, appAuth.user);
     return NextResponse.json(song, { status: 201 });
   } catch (error) {
+    if (error instanceof DuplicateSongError) {
+      return NextResponse.json(
+        makeApiError(error.message, "DUPLICATE_SONG", [
+          error.existingSong.id,
+          error.existingSong.songTitle || "",
+          error.existingSong.submitterName,
+        ]),
+        { status: 409 }
+      );
+    }
     console.error("Failed to create song:", error);
     return NextResponse.json(
       makeApiError("Failed to create song", "CREATE_SONG_FAILED"),

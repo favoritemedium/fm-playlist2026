@@ -44,12 +44,29 @@
   },
   "playlist": {
     "allTracks": "Tất cả bài hát",
+    "view": {
+      "ariaLabel": "Bộ lọc chế độ xem bài hát",
+      "all": "All tracks",
+      "saved": "Saved tracks",
+      "mine": "My submissions",
+      "played": "Played recently",
+      "unplayed": "Not played"
+    },
+    "card": {
+      "untitled": "Bài hát chưa có tiêu đề",
+      "sharedBy": "Được chia sẻ bởi {name}",
+      "save": "Lưu bài hát",
+      "removeSaved": "Xóa khỏi bài hát đã lưu"
+    },
     "sort": {
+      "ariaLabel": "Sắp xếp bài hát",
       "newest": "Mới nhất",
       "mostLiked": "Được thích nhiều nhất"
     },
     "filter": {
-      "all": "Tất cả"
+      "all": "Tất cả",
+      "yearAriaLabel": "Bộ lọc năm",
+      "monthAriaLabel": "Bộ lọc tháng"
     },
     "search": {
       "placeholder": "Tìm theo tên, tiêu đề, nghệ sĩ...",
@@ -64,8 +81,13 @@
     },
     "notification": {
       "newComment": "{name} đã bình luận trên bài hát của bạn",
+      "newReply": "New reply from {name}",
       "dismissError": "Đóng lỗi",
       "dismissNotification": "Đóng thông báo"
+    },
+    "shareCopied": "Link ready to share",
+    "errors": {
+      "failedToSave": "Could not update saved tracks"
     },
     "footer": {
       "track": "{count, plural, one {# bài hát} other {# bài hát}}",
@@ -83,8 +105,15 @@
     "descriptionPlaceholder": "Tại sao bài hát này?",
     "submitButton": "Thêm vào danh sách",
     "submittingButton": "Đang thêm...",
+    "previewButton": "Preview link",
+    "previewingButton": "Checking link...",
+    "unknownTitle": "Untitled video",
+    "unavailableWarning": "This video may be unavailable or private.",
+    "duplicateWarning": "Already shared by {name}. Allow this as a re-share.",
     "errors": {
       "failedToAdd": "Không thể thêm bài hát",
+      "failedToPreview": "Failed to preview link",
+      "confirmDuplicate": "Confirm that this is an intentional re-share",
       "failedToRead": "Không thể đọc bài hát vừa thêm",
       "somethingWentWrong": "Có lỗi xảy ra"
     },
@@ -98,6 +127,10 @@
     "added": "Đã thêm {date}",
     "byArtist": "bởi {artist}",
     "signInToLike": "Đăng nhập bằng tài khoản {domain} để thích"
+    ,"save": "Save"
+    ,"saved": "Saved"
+    ,"removeSaved": "Remove from saved"
+    ,"share": "Share"
   },
   "engagement": {
     "likedBy": "Được thích bởi",
@@ -125,6 +158,26 @@
     },
     "signInToLike": "Đăng nhập bằng tài khoản {domain} để thích",
     "signInToInteract": "Đăng nhập bằng tài khoản {domain} để thêm bài hát / thích / bình luận"
+  },
+  "recap": {
+    "title": "Playlist recap",
+    "tracks": "Tracks",
+    "likes": "Likes",
+    "comments": "Comments",
+    "contributors": "Contributors",
+    "topTrack": "Top track: {title} ({date})",
+    "untitled": "Untitled"
+  },
+  "activity": {
+    "title": "Latest activity",
+    "submission": "{name} shared {title}",
+    "like": "{name} liked {title}",
+    "comment": "{name} commented on {title}",
+    "reply": "{name} replied on {title}",
+    "untitled": "an untitled track",
+    "livePulse": "Trực tiếp",
+    "empty": "Chưa có hoạt động gần đây.",
+    "unavailable": "Hiện không thể tải hoạt động."
   },
   "error": {
     "title": "Có lỗi xảy ra",

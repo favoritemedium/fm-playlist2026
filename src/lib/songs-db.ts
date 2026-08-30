@@ -22,6 +22,7 @@ export interface SongRow {
   like_count?: number | string;
   comment_count?: number | string;
   user_liked?: boolean;
+  bookmarked?: boolean;
 }
 
 export interface SongInsert {
@@ -67,6 +68,7 @@ function rowToSong(row: SongRow): Song {
     likeCount: Number(row.like_count ?? 0),
     commentCount: Number(row.comment_count ?? 0),
     userLiked: Boolean(row.user_liked),
+    bookmarked: Boolean(row.bookmarked),
   };
 }
 
@@ -94,7 +96,14 @@ export async function fetchAllSongs(currentUserId: string | null = null): Promis
            SELECT 1 FROM song_likes ul
            WHERE ul.song_id = s.id AND ul.user_id = $1
          )
-       ) AS user_liked
+       ) AS user_liked,
+       (
+         $1::text IS NOT NULL
+         AND EXISTS (
+           SELECT 1 FROM song_bookmarks ub
+           WHERE ub.song_id = s.id AND ub.user_id = $1
+         )
+       ) AS bookmarked
      FROM songs s
      LEFT JOIN (
        SELECT song_id, count(*)::int AS like_count
@@ -110,6 +119,56 @@ export async function fetchAllSongs(currentUserId: string | null = null): Promis
     [currentUserId]
   );
   return result.rows.map(rowToSong);
+}
+
+export async function fetchSongByYouTubeVideoId(
+  youtubeVideoId: string,
+  currentUserId: string | null = null
+): Promise<Song | null> {
+  await ensureSchema();
+  const result = await getPool().query<SongRow>(
+    `SELECT ${QUALIFIED_SELECT_COLS},
+       COALESCE(l.like_count, 0)::int AS like_count,
+       COALESCE(c.comment_count, 0)::int AS comment_count,
+       ($2::text IS NOT NULL AND EXISTS (
+         SELECT 1 FROM song_likes ul WHERE ul.song_id = s.id AND ul.user_id = $2
+       )) AS user_liked,
+       ($2::text IS NOT NULL AND EXISTS (
+         SELECT 1 FROM song_bookmarks ub WHERE ub.song_id = s.id AND ub.user_id = $2
+       )) AS bookmarked
+     FROM songs s
+     LEFT JOIN (SELECT song_id, count(*)::int AS like_count FROM song_likes GROUP BY song_id) l
+       ON l.song_id = s.id
+     LEFT JOIN (SELECT song_id, count(*)::int AS comment_count FROM song_comments GROUP BY song_id) c
+       ON c.song_id = s.id
+     WHERE s.youtube_video_id = $1
+     ORDER BY s.id DESC
+     LIMIT 1`,
+    [youtubeVideoId, currentUserId]
+  );
+
+  return result.rows[0] ? rowToSong(result.rows[0]) : null;
+}
+
+export async function setSongBookmarked(
+  songId: number,
+  userId: string,
+  bookmarked: boolean
+): Promise<boolean> {
+  await ensureSchema();
+  if (bookmarked) {
+    await getPool().query(
+      `INSERT INTO song_bookmarks (song_id, user_id)
+       VALUES ($1, $2) ON CONFLICT (song_id, user_id) DO NOTHING`,
+      [songId, userId]
+    );
+  } else {
+    await getPool().query(
+      "DELETE FROM song_bookmarks WHERE song_id = $1 AND user_id = $2",
+      [songId, userId]
+    );
+  }
+  return bookmarked;
 }
 
 export async function createSongRow(row: SongInsert): Promise<Song> {

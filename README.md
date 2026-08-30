@@ -7,6 +7,7 @@ Postgres host.
 ## Features
 
 - **Google sign-in** via Clerk (restricted to `@favoritemedium.com`)
+- **Public read-only browsing** — anyone can discover tracks, likes, and comments; sign-in is required to add, like, save, or comment
 - **Monthly playlists** — browse by year and month, then sort by newest or most liked
 - **Add tracks** — paste a YouTube URL with an optional description
 - **Likes and comments** — like songs, add comments, and reply one level deep
@@ -77,12 +78,14 @@ npm run test    # Run unit tests
 ## Runtime behavior
 
 - `GET /api/health` is public and returns `{"ok": true}` for orchestration.
-- `GET /api/songs` and `POST /api/songs` require an authenticated Clerk user
-  from the allowed email domain.
-- `GET`, `POST`, and `DELETE /api/songs/[songId]/likes` require the same
-  allowed-domain Clerk auth and return the current song engagement summary.
-- `GET` and `POST /api/songs/[songId]/comments` plus `PATCH` and
-  `DELETE /api/comments/[commentId]` require the same auth, support one level
+- `GET /api/songs` is public for read-only browsing. `POST /api/songs` requires
+  an authenticated Clerk user from the allowed email domain.
+- `GET /api/songs/[songId]/likes` and `GET /api/songs/[songId]/comments` are
+  public read endpoints. Mutating likes/comments and `/api/notifications`
+  require the same allowed-domain Clerk auth.
+- `POST` and `DELETE` `/api/songs/[songId]/likes`, `POST`
+  `/api/songs/[songId]/comments` plus `PATCH` and `DELETE`
+  `/api/comments/[commentId]` require the same auth, support one level
   of replies, limit comment bodies to 500 characters, and enforce a
   5-comments-per-minute rate limit.
 - `GET /api/engagement/events` is an authenticated Server-Sent Events stream

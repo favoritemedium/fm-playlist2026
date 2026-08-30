@@ -44,12 +44,29 @@
   },
   "playlist": {
     "allTracks": "모든 트랙",
+    "view": {
+      "ariaLabel": "트랙 보기 필터",
+      "all": "All tracks",
+      "saved": "Saved tracks",
+      "mine": "My submissions",
+      "played": "Played recently",
+      "unplayed": "Not played"
+    },
+    "card": {
+      "untitled": "제목 없는 트랙",
+      "sharedBy": "{name}님이 공유함",
+      "save": "트랙 저장",
+      "removeSaved": "저장된 트랙에서 삭제"
+    },
     "sort": {
+      "ariaLabel": "트랙 정렬",
       "newest": "최신순",
       "mostLiked": "좋아요 많은 순"
     },
     "filter": {
-      "all": "전체"
+      "all": "전체",
+      "yearAriaLabel": "연도 필터",
+      "monthAriaLabel": "월 필터"
     },
     "search": {
       "placeholder": "이름, 제목, 아티스트로 검색...",
@@ -64,8 +81,13 @@
     },
     "notification": {
       "newComment": "{name}님이 회원님의 트랙에 새 댓글을 달았습니다",
+      "newReply": "New reply from {name}",
       "dismissError": "오류 닫기",
       "dismissNotification": "알림 닫기"
+    },
+    "shareCopied": "Link ready to share",
+    "errors": {
+      "failedToSave": "Could not update saved tracks"
     },
     "footer": {
       "track": "{count, plural, other {트랙 #개}}",
@@ -83,8 +105,15 @@
     "descriptionPlaceholder": "이 트랙을 추천하는 이유는?",
     "submitButton": "플레이리스트에 추가",
     "submittingButton": "추가 중...",
+    "previewButton": "Preview link",
+    "previewingButton": "Checking link...",
+    "unknownTitle": "Untitled video",
+    "unavailableWarning": "This video may be unavailable or private.",
+    "duplicateWarning": "Already shared by {name}. Allow this as a re-share.",
     "errors": {
       "failedToAdd": "트랙 추가 실패",
+      "failedToPreview": "Failed to preview link",
+      "confirmDuplicate": "Confirm that this is an intentional re-share",
       "failedToRead": "추가된 트랙을 불러오지 못했습니다",
       "somethingWentWrong": "오류가 발생했습니다"
     },
@@ -98,6 +127,10 @@
     "added": "{date} 추가됨",
     "byArtist": "{artist}",
     "signInToLike": "{domain} 계정으로 로그인하여 좋아요 누르기"
+    ,"save": "Save"
+    ,"saved": "Saved"
+    ,"removeSaved": "Remove from saved"
+    ,"share": "Share"
   },
   "engagement": {
     "likedBy": "좋아요를 누른 사람",
@@ -125,6 +158,26 @@
     },
     "signInToLike": "{domain} 계정으로 로그인하여 좋아요 누르기",
     "signInToInteract": "{domain} 계정으로 로그인하여 트랙 추가 / 좋아요 / 댓글 작성"
+  },
+  "recap": {
+    "title": "Playlist recap",
+    "tracks": "Tracks",
+    "likes": "Likes",
+    "comments": "Comments",
+    "contributors": "Contributors",
+    "topTrack": "Top track: {title} ({date})",
+    "untitled": "Untitled"
+  },
+  "activity": {
+    "title": "Latest activity",
+    "submission": "{name} shared {title}",
+    "like": "{name} liked {title}",
+    "comment": "{name} commented on {title}",
+    "reply": "{name} replied on {title}",
+    "untitled": "an untitled track",
+    "livePulse": "실시간",
+    "empty": "아직 최근 활동이 없습니다.",
+    "unavailable": "현재 활동을 불러올 수 없습니다."
   },
   "error": {
     "title": "문제가 발생했습니다",

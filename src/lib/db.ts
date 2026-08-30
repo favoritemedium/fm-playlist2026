@@ -100,6 +100,24 @@ CREATE TABLE IF NOT EXISTS song_comments (
   updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS song_bookmarks (
+  song_id              INTEGER NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
+  user_id              TEXT    NOT NULL REFERENCES app_users(clerk_user_id) ON DELETE CASCADE,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (song_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS app_notifications (
+  id                   SERIAL PRIMARY KEY,
+  recipient_user_id    TEXT NOT NULL REFERENCES app_users(clerk_user_id) ON DELETE CASCADE,
+  actor_user_id        TEXT REFERENCES app_users(clerk_user_id) ON DELETE SET NULL,
+  song_id              INTEGER NOT NULL REFERENCES songs(id) ON DELETE CASCADE,
+  comment_id           INTEGER REFERENCES song_comments(id) ON DELETE CASCADE,
+  type                 TEXT NOT NULL CONSTRAINT app_notifications_type_check CHECK (type IN ('comment', 'reply')),
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+  read_at              TIMESTAMPTZ
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'song_comments_body_check') THEN
@@ -152,6 +170,10 @@ CREATE INDEX IF NOT EXISTS song_comments_user_created_idx
   ON song_comments (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS song_comments_parent_comment_id_idx
   ON song_comments (parent_comment_id);
+CREATE INDEX IF NOT EXISTS song_bookmarks_user_created_idx
+  ON song_bookmarks (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS app_notifications_recipient_created_idx
+  ON app_notifications (recipient_user_id, created_at DESC);
 
 CREATE INDEX IF NOT EXISTS reminder_runs_job_created_idx
   ON reminder_runs (job_name, created_at DESC);

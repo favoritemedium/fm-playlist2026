@@ -19,11 +19,11 @@ export function UserMenu({ user, settings }: UserMenuProps) {
   const t = useTranslations("auth");
 
   return (
-    <div className="flex items-center gap-3.5 bg-white/80 backdrop-blur-md px-3.5 py-1.5 rounded-2xl shadow-md border border-border/80">
+    <div className="flex w-full items-center gap-2 rounded-2xl border border-border/80 bg-white/80 px-3.5 py-1.5 shadow-md backdrop-blur-md sm:w-auto sm:gap-3.5">
       {/* Profile: avatar + name */}
       {user ? (
         <>
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:flex-none">
             {user.picture && (
               <Image
                 src={user.picture}
@@ -33,7 +33,7 @@ export function UserMenu({ user, settings }: UserMenuProps) {
                 className="size-7 rounded-full border border-primary/20 object-cover shrink-0 shadow-inner"
               />
             )}
-            <span className="text-xs font-black text-foreground truncate max-w-[90px] xs:max-w-[120px] sm:max-w-[150px]">
+            <span className="min-w-0 flex-1 truncate text-xs font-black text-foreground sm:max-w-[150px]">
               {user.name || user.email}
             </span>
           </div>
@@ -44,7 +44,7 @@ export function UserMenu({ user, settings }: UserMenuProps) {
       ) : null}
 
       {/* Controls: language dropdown, settings, and logout/login */}
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="relative ml-auto flex shrink-0 items-center gap-1.5">
         {settings}
         {user ? (
           <>

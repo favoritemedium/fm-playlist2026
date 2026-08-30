@@ -97,8 +97,13 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen relative antialiased selection:bg-primary/20 selection:text-primary;
     font-family: var(--font-body);
+    background-image:
+      radial-gradient(at 15% 10%, rgba(249, 0, 110, 0.04) 0px, transparent 50%),
+      radial-gradient(at 85% 15%, rgba(35, 7, 168, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, rgba(249, 0, 110, 0.02) 0px, transparent 60%);
+    background-attachment: fixed;
   }
 
   h1,
@@ -112,6 +117,7 @@
 
   html {
     font-size: var(--font-size);
+    scroll-behavior: smooth;
   }
 
   h1 {
@@ -155,4 +161,31 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+}
+
+@keyframes soundwave-1 {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+@keyframes soundwave-2 {
+  0%, 100% { height: 14px; }
+  50% { height: 6px; }
+}
+
+@keyframes soundwave-3 {
+  0%, 100% { height: 8px; }
+  50% { height: 18px; }
+}
+
+.animate-soundwave-1 {
+  animation: soundwave-1 0.8s ease-in-out infinite;
+}
+
+.animate-soundwave-2 {
+  animation: soundwave-2 0.7s ease-in-out infinite 0.15s;
+}
+
+.animate-soundwave-3 {
+  animation: soundwave-3 0.9s ease-in-out infinite 0.3s;
 }

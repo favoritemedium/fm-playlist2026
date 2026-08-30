@@ -95,7 +95,7 @@ export function PlaylistSettings({
   }, [open]);
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef}>
       <button
         type="button"
         aria-label={t("ariaLabel")}

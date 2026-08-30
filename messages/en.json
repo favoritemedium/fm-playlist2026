@@ -44,12 +44,29 @@
   },
   "playlist": {
     "allTracks": "All Tracks",
+    "view": {
+      "ariaLabel": "Track view filter",
+      "all": "All tracks",
+      "saved": "Saved tracks",
+      "mine": "My submissions",
+      "played": "Played recently",
+      "unplayed": "Not played"
+    },
+    "card": {
+      "untitled": "Untitled track",
+      "sharedBy": "Shared by {name}",
+      "save": "Save track",
+      "removeSaved": "Remove from saved tracks"
+    },
     "sort": {
+      "ariaLabel": "Sort tracks",
       "newest": "Newest",
       "mostLiked": "Most liked"
     },
     "filter": {
-      "all": "All"
+      "all": "All",
+      "yearAriaLabel": "Year filter",
+      "monthAriaLabel": "Month filter"
     },
     "search": {
       "placeholder": "Search by name, title, artist...",
@@ -64,8 +81,13 @@
     },
     "notification": {
       "newComment": "New comment from {name} on your track",
+      "newReply": "New reply from {name}",
       "dismissError": "Dismiss error",
       "dismissNotification": "Dismiss notification"
+    },
+    "shareCopied": "Link ready to share",
+    "errors": {
+      "failedToSave": "Could not update saved tracks"
     },
     "footer": {
       "track": "{count, plural, one {track} other {tracks}}",
@@ -83,8 +105,15 @@
     "descriptionPlaceholder": "Why this track?",
     "submitButton": "Add to Playlist",
     "submittingButton": "Adding...",
+    "previewButton": "Preview link",
+    "previewingButton": "Checking link...",
+    "unknownTitle": "Untitled video",
+    "unavailableWarning": "This video may be unavailable or private.",
+    "duplicateWarning": "Already shared by {name}. Allow this as a re-share.",
     "errors": {
       "failedToAdd": "Failed to add track",
+      "failedToPreview": "Failed to preview link",
+      "confirmDuplicate": "Confirm that this is an intentional re-share",
       "failedToRead": "Failed to read added track",
       "somethingWentWrong": "Something went wrong"
     },
@@ -97,7 +126,11 @@
     "openComments": "Open comments",
     "added": "Added {date}",
     "byArtist": "by {artist}",
-    "signInToLike": "Sign in with a {domain} account to like"
+    "signInToLike": "Sign in with a {domain} account to like",
+    "save": "Save",
+    "saved": "Saved",
+    "removeSaved": "Remove from saved",
+    "share": "Share"
   },
   "engagement": {
     "likedBy": "Liked by",
@@ -125,6 +158,26 @@
     },
     "signInToLike": "Sign in with a {domain} account to like",
     "signInToInteract": "Sign in with a {domain} account to add a track / like / comment"
+  },
+  "recap": {
+    "title": "Playlist recap",
+    "tracks": "Tracks",
+    "likes": "Likes",
+    "comments": "Comments",
+    "contributors": "Contributors",
+    "topTrack": "Top track: {title} ({date})",
+    "untitled": "Untitled"
+  },
+  "activity": {
+    "title": "Latest activity",
+    "submission": "{name} shared {title}",
+    "like": "{name} liked {title}",
+    "comment": "{name} commented on {title}",
+    "reply": "{name} replied on {title}",
+    "untitled": "an untitled track",
+    "livePulse": "Live pulse",
+    "empty": "No recent activity yet.",
+    "unavailable": "Activity is unavailable right now."
   },
   "error": {
     "title": "Something went wrong",
