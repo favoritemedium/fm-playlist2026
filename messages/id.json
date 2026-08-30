@@ -165,7 +165,12 @@
     "likes": "Likes",
     "comments": "Comments",
     "contributors": "Contributors",
-    "topTrack": "Top track: {title} ({date})",
+    "showLeaderboard": "Papan peringkat",
+    "hideLeaderboard": "Sembunyikan",
+    "topSubmitters": "Kontributor teratas",
+    "submissionCount": "{count} kiriman",
+    "topTrackLabel": "Lagu teratas",
+    "likeCount": "{count} suka",
     "untitled": "Untitled"
   },
   "activity": {

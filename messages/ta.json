@@ -165,7 +165,12 @@
     "likes": "Likes",
     "comments": "Comments",
     "contributors": "Contributors",
-    "topTrack": "Top track: {title} ({date})",
+    "showLeaderboard": "தரவரிசை",
+    "hideLeaderboard": "மறை",
+    "topSubmitters": "அதிகம் பகிர்ந்தவர்கள்",
+    "submissionCount": "{count} பாடல்கள்",
+    "topTrackLabel": "சிறந்த பாடல்",
+    "likeCount": "{count} விருப்பங்கள்",
     "untitled": "Untitled"
   },
   "activity": {

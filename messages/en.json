@@ -165,7 +165,12 @@
     "likes": "Likes",
     "comments": "Comments",
     "contributors": "Contributors",
-    "topTrack": "Top track: {title} ({date})",
+    "showLeaderboard": "Leaderboard",
+    "hideLeaderboard": "Hide",
+    "topSubmitters": "Top submitters",
+    "submissionCount": "{count, plural, one {# submission} other {# submissions}}",
+    "topTrackLabel": "Top track",
+    "likeCount": "{count, plural, one {# like} other {# likes}}",
     "untitled": "Untitled"
   },
   "activity": {

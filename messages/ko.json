@@ -165,7 +165,12 @@
     "likes": "Likes",
     "comments": "Comments",
     "contributors": "Contributors",
-    "topTrack": "Top track: {title} ({date})",
+    "showLeaderboard": "리더보드",
+    "hideLeaderboard": "숨기기",
+    "topSubmitters": "최다 제출자",
+    "submissionCount": "{count}곡",
+    "topTrackLabel": "인기 트랙",
+    "likeCount": "좋아요 {count}개",
     "untitled": "Untitled"
   },
   "activity": {

@@ -165,7 +165,12 @@
     "likes": "Likes",
     "comments": "Comments",
     "contributors": "Contributors",
-    "topTrack": "Top track: {title} ({date})",
+    "showLeaderboard": "ප්‍රමුඛතා ලැයිස්තුව",
+    "hideLeaderboard": "සඟවන්න",
+    "topSubmitters": "වැඩිම ගීත බෙදාගත් අය",
+    "submissionCount": "ගීත {count}",
+    "topTrackLabel": "ජනප්‍රියම ගීතය",
+    "likeCount": "කැමැත්ත {count}",
     "untitled": "Untitled"
   },
   "activity": {

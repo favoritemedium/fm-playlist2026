@@ -165,7 +165,12 @@
     "likes": "Likes",
     "comments": "Comments",
     "contributors": "Contributors",
-    "topTrack": "Top track: {title} ({date})",
+    "showLeaderboard": "Bảng xếp hạng",
+    "hideLeaderboard": "Ẩn",
+    "topSubmitters": "Người đóng góp nhiều nhất",
+    "submissionCount": "{count} bài hát",
+    "topTrackLabel": "Bài hát nổi bật",
+    "likeCount": "{count} lượt thích",
     "untitled": "Untitled"
   },
   "activity": {
